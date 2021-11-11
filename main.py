@@ -14,14 +14,14 @@ import colorsys
 import shutil
 
 DIM = (500, 300)
-COLORS_IN_PALETTE = 10
+COLORS_IN_PALETTE = 20
 
 WHITE_COLOR_FILTER = 220
 
 JPG_SOURCE_FOLDER = 'images/jpg'
 SVG_SOURCE_FOLDER = 'images/svg'
 TARGET_FOLDER = 'target'
-STYLE_SOURCE = 'style5.jpg'
+STYLE_SOURCE = 'style3.jpg'
 
 
 def show_img_compar(img_1, img_2 ):
@@ -59,10 +59,14 @@ def changeColors(content, palette):
     colorsToChange = re.findall(r"#\w+", content)
     colorsToChange = list(dict.fromkeys(colorsToChange))
 
-    allColors = palette + colorsToChange
+    allColors = colorsToChange
     allColors = [toRGB(hexaHashTag[1:]) for hexaHashTag in allColors]
     allColors.sort(key=lambda x: step(x, 8))
     allColors = [toHex(i) for i in allColors]
+
+    for color in palette:
+        idx = random.randint(0, len(allColors) - 2)
+        allColors.insert(idx, color)
 
     indexes = [allColors.index(i) for i in palette]
     indexes.sort()
