@@ -14,7 +14,7 @@ COLORS_IN_PALETTE = 10
 
 SVG_SOURCE_FOLDER = 'images/svg'
 TARGET_FOLDER = 'target'
-STYLE_SOURCE = 'style8.jpg'
+STYLE_SOURCE = 'style2.jpg'
 NUMBER_EXAMPLES = 1
 
 
@@ -90,7 +90,7 @@ def changeColors(content, palette):
     hexToLab = dict(zip(allHEX, lab))
 
     allLAB = lab.reshape(-1, 3)
-    allLAB = allLAB[np.apply_along_axis(lambda row: euclidean((row[0], row[1], row[2])), 1, allLAB).argsort()]
+    np.random.shuffle(allLAB)
 
     indexes = [findIndex(i, allLAB) for i in palette[1]]
     indexes.sort()
