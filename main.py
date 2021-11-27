@@ -12,7 +12,6 @@ from sklearn.cluster import KMeans
 DIM = (500, 300)
 COLORS_IN_PALETTE = 10
 
-JPG_SOURCE_FOLDER = 'images/jpg'
 SVG_SOURCE_FOLDER = 'images/svg'
 TARGET_FOLDER = 'target'
 STYLE_SOURCE = 'style8.jpg'
