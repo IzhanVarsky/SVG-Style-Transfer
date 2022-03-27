@@ -2,9 +2,7 @@ import codecs
 import cv2 as cv
 import cairosvg
 from segmentation.segmentation import Segmentation
-from cut_by_mask import compileMaskToSvg, cutSvgByMask
-from potrace import Bitmap
-import numpy
+from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask
 
 # TODO: provide NUMBER_OF_CLASSES into segmentation by constructor or check
 # the score and add threshold (to filter classes with low score of likeness)
@@ -66,9 +64,9 @@ def process_svg(path_to_svg):
     silhouettes = segmentaizer.segment(rasterized, from_byte=True, silhouette=True)
     # II.4)
     for idx, silhouette in enumerate(silhouettes):
-        compileMaskToSvg(idx, silhouette)
+        compile_mask_to_svg(idx, silhouette)
 
-    cutSvgByMask('sample2 (result).svg', 'tempSvgMasks/tempOptimized0.svg')
+    cut_svg_by_mask('sample2 (result).svg', 'tempSvgMasks/tempOptimized0.svg')
 
     return silhouettes
 

@@ -217,7 +217,7 @@ def extend_attributes(group_attributes, group_position, tags):
     return tags
 
 
-with codecs.open('sample2 (1).svg', encoding='utf-8', errors='ignore') as f:
+with codecs.open('sample2 (flatten).svg', encoding='utf-8', errors='ignore') as f:
     content = f.read()
 
 tags = []
