@@ -171,6 +171,8 @@ def remove_groups(file_path):
         group_position = find_pair_group(tags)
 
     newContent = '\n'.join(tags)
-    with open(file_path + ' (removed groups).svg', 'wb') as f:
+    with open(file_path.split('.')[0] + ' (removed groups).svg', 'wb') as f:
         f.write(newContent.encode('utf-8'))
+
+    return file_path.split('.')[0] + ' (removed groups).svg'
 

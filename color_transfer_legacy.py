@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage import color
 from sklearn.cluster import KMeans
+from cut_by_mask import find_all_used_ids, append_common_tags
 
 DIM = (500, 300)
 COLORS_IN_PALETTE = 6
 
-SVG_SOURCE_FOLDER = 'images/svg'
-TARGET_FOLDER = 'target'
-STYLE_SOURCE = 'styles/sample1.jpg'
+STYLE_TRANSFERED_SVG = 'styleTransferedSvg.svg'
+NEW_CONTENT_TEMP_SVG = 'tempNewContentSvg.svg'
 NUMBER_EXAMPLES = 1
 
 
@@ -114,133 +114,42 @@ def euclidean(coords):
     return (l - ll) ** 2 + (a - aa) ** 2 + (b - bb) ** 2
 
 
-style = cv.imread(STYLE_SOURCE)
-style = cv.cvtColor(style, cv.COLOR_BGR2RGB)
-style = cv.resize(style, DIM, interpolation=cv.INTER_AREA)
+def transfer_style(style, content_filename, is_first_file = False):
+    style = cv.resize(style, DIM, interpolation=cv.INTER_AREA)
 
-palette = extractPalette(style, COLORS_IN_PALETTE)
+    palette = extractPalette(style, COLORS_IN_PALETTE)
 
-
-filesToChange = os.listdir(SVG_SOURCE_FOLDER)
-shutil.rmtree(TARGET_FOLDER, ignore_errors=True)
-Path(TARGET_FOLDER).mkdir(parents=True, exist_ok=True)
-
-for fileToChange in filesToChange:
-    with codecs.open(SVG_SOURCE_FOLDER + '/' + fileToChange, encoding='utf-8', errors='ignore') as f:
+    with codecs.open(content_filename, encoding='utf-8', errors='ignore') as f:
             content = f.read()
 
-    print('Now processing file', fileToChange)
+    print('Now processing file', content_filename)
     newContent = changeColors(content, palette)
+    with open(NEW_CONTENT_TEMP_SVG, 'wb') as f:
+      f.write(newContent.encode('utf-8'))
 
-    with open(TARGET_FOLDER + '/result-' + fileToChange, 'wb') as f:
-        f.write(newContent.encode('utf-8'))
+    # Вставляем id для градиентов всяких
 
+    ids_content = find_all_used_ids(NEW_CONTENT_TEMP_SVG)
+    ids_already_in_result = []
 
+    if not is_first_file:
+        ids_already_in_result = find_all_used_ids(STYLE_TRANSFERED_SVG)
+    else:
+        f = open(STYLE_TRANSFERED_SVG, 'w')
 
+    ids_to_add = list(filter(lambda id: id not in ids_already_in_result, ids_content))
+    append_common_tags(NEW_CONTENT_TEMP_SVG, STYLE_TRANSFERED_SVG, ids_to_add)
 
+    # А теперь вставим svg сам
+    with open(STYLE_TRANSFERED_SVG, 'r') as f:
+        data = f.readlines()
 
+    index_to_write = len(data) - 1
 
-# legacy svg_parser
-import re
-import codecs
+    data = data[:index_to_write] + [''] + data[index_to_write:]
 
-def find_pair_group(arr):
-    balance = 0
-    startPosition = -1
-    endPosition = -1
+    with open(STYLE_TRANSFERED_SVG, 'w') as f:
+        f.writelines(data)
 
-    for idx, tag in enumerate(arr):
-        if tag.startswith('<g'):
-            if balance == 0:
-                startPosition = idx
-            balance += 1
-        if tag.startswith('</g'):
-            if balance == 1:
-                endPosition = idx
-                break
-            balance -= 1
-
-    return startPosition, endPosition
-
-def inherit_attributes(tag):
-    attributes_dict = {}
-    attributes = re.findall(r"[a-z-A-Z0-9]*=\".*?\"", tag)
-    for attribute in attributes:
-        key, value = attribute.split('=')
-        attributes_dict[key] = value.replace('"', '')
-    return attributes_dict
-
-def clean_attributes(tag):
-    tag = re.sub(r"[a-z-A-Z0-9]*=\".*?\"", '', tag)
-    return re.sub(r"\s*", '', tag)
-
-def add_attributes(tag, attrs):
-    tag = clean_attributes(tag)
-    ind = len(tag) - 1 # before this index we need to insert attributes
-    if tag[ind - 1] == '/':
-        ind -= 1
-    attrs_string = ''
-
-    for attr in attrs:
-        attrs_string += (' ' + attr + '="' + attrs[attr] + '"')
-    return tag[:ind] + attrs_string + tag[ind:]
-
-
-def extend_attributes(group_attributes, group_position, tags):
-    start_group, end_group = group_position
-    for i in range(start_group + 1, end_group - 1):
-        cur_tag = tags[i]
-        if cur_tag.startswith('</'):
-            continue
-        cur_tag_attributes = inherit_attributes(cur_tag)
-
-        '''
-        for attr in group_attributes: # может быть заигнорить атрибут d
-            if attr in cur_tag_attributes:
-                if (attr == "fill-rule" or attr == "clip-path") and (group_attributes[attr] in cur_tag_attributes[attr]): # maybe delete it
-                    continue
-                cur_tag_attributes[attr] = cur_tag_attributes[attr] + ' ' + group_attributes[attr]
-            else:
-                cur_tag_attributes[attr] = group_attributes[attr]
-        '''
-        # Нужно поиследовать, кто там что наследует
-        for attr in group_attributes:
-            if attr in cur_tag_attributes:
-                if attr != "transform":
-                    continue
-                cur_tag_attributes[attr] = cur_tag_attributes[attr] + ' ' + group_attributes[attr]
-            else:
-                cur_tag_attributes[attr] = group_attributes[attr]
-
-        tags[i] = add_attributes(cur_tag, cur_tag_attributes)
-
-    return tags
-
-
-with codecs.open('sample2 (flatten).svg', encoding='utf-8', errors='ignore') as f:
-    content = f.read()
-
-tags = []
-parsed = re.findall(r"(<.*?/>)|(<.*?>)|(</.*?>)", content)
-for tagTuple in parsed:
-    tags.append(tagTuple[0] or tagTuple[1] or tagTuple[2])
-
-group_position = find_pair_group(tags)
-#counter = 0
-while group_position[0] != -1:
-    #if counter == 1:
-     #   break
-    # process one group
-    group_attributes = inherit_attributes(tags[group_position[0]])
-    tags = extend_attributes(group_attributes, group_position, tags)
-    tags.pop(group_position[1])
-    tags.pop(group_position[0])
-    group_position = find_pair_group(tags)
-
-newContent = '\n'.join(tags)
-with open('sample2 (result).svg', 'wb') as f:
-    f.write(newContent.encode('utf-8'))
-
-
-
-
+    #with open(STYLE_TRANSFERED_SVG, 'wb') as f:
+      #  f.write(newContent.encode('utf-8'))

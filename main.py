@@ -2,7 +2,9 @@ import codecs
 import cv2 as cv
 import cairosvg
 from segmentation.segmentation import Segmentation
-from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask
+from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask, cut_all_svg_by_mask
+from color_transfer_legacy import transfer_style
+from svg_parser import remove_groups
 
 # TODO: provide NUMBER_OF_CLASSES into segmentation by constructor or check
 # the score and add threshold (to filter classes with low score of likeness)
@@ -57,6 +59,7 @@ def process_style(path_to_style):
 '''
 def process_svg(path_to_svg):
     # II.0)
+    path_to_svg = remove_groups(path_to_svg)
     # TODO: добавить вот сюда дерганье flatten как-нибудь + мой svg_parser
     # II.1)
     rasterized = cairosvg.svg2png(url=path_to_svg)
@@ -66,11 +69,16 @@ def process_svg(path_to_svg):
     for idx, silhouette in enumerate(silhouettes):
         compile_mask_to_svg(idx, silhouette)
 
-    cut_svg_by_mask('sample2 (result).svg', 'tempSvgMasks/tempOptimized0.svg')
+    # II.5)
+    svg_cut_objects_filenames = cut_all_svg_by_mask(path_to_svg)
 
-    return silhouettes
+    return svg_cut_objects_filenames
 
 ## test stand
 styleMasks = process_style('sample1.jpg')
-svgSilhouettes = process_svg('sample2 (result).svg')
+#transfer_style(styleMasks[0], 'tempCutObjects/cutObject0.svg')
+svg_masks_filenames = process_svg('sample2 (result).svg')
 
+for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + styleMasks[0], svg_masks_filenames)):
+    print('Вот тут надо в один файл все сливать, проверять что повторов id нет, см методы в svg_parser-е')
+    transfer_style(style_mask, svg_filename, idx == 0)

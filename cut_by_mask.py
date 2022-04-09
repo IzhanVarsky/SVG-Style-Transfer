@@ -4,11 +4,14 @@ import pathlib
 import PIL.Image
 import svgpathtools
 from svg_parser import find_all_used_ids, find_tags_by_ids
+from os import listdir
 
 RASTER_MASK_TARGET = 'tempRasterMasks'
 SVG_MASK_TARGET = 'tempSvgMasks'
+CUT_OBJECTS_TARGET = 'tempCutObjects'
 TEMP_OPTIMIZED = 'tempOptimized'
 TEMP = 'temp'
+CUT_OBJECT = 'cutObject'
 
 TEST_IN = 'testIN.svg'
 TEST_OUT = 'testOUT.svg'
@@ -21,6 +24,12 @@ def TEMP_SVG_NAME(idx):
 
 def TEMP_OPTIMIZED_SVG_NAME(idx):
     return SVG_MASK_TARGET + '/' + TEMP_OPTIMIZED + str(idx) + '.svg'
+
+def CUT_OBJECT_SVG_NAME(idx):
+    return CUT_OBJECTS_TARGET + '/' + CUT_OBJECT + str(idx) + '.svg'
+
+def OUT_CUT_OBJECT_SVG_NAME():
+    return CUT_OBJECTS_TARGET + '/' + CUT_OBJECT + 'Out' + '.svg'
 
 def compile_mask_to_svg(idx, mask):
     pathlib.Path(RASTER_MASK_TARGET).mkdir(parents=True, exist_ok=True)
@@ -71,8 +80,9 @@ def flatten(path, attr):
     return path.translated(x + y * 1j)
 
 
-def append_common_tags(svg_filename, edit_filename):
-    ids = find_all_used_ids(edit_filename)
+def append_common_tags(svg_filename, edit_filename, ids = None):
+    if ids == None: # TODO: check this
+        ids = find_all_used_ids(edit_filename)
     tags_to_append = find_tags_by_ids(svg_filename, ids)
 
     with open(edit_filename, 'r') as f:
@@ -84,13 +94,14 @@ def append_common_tags(svg_filename, edit_filename):
         if line.startswith('<svg'):
             break
 
+    tags_to_append = list(map(lambda line: line + '\n', tags_to_append))
     data = data[:index_to_write] + tags_to_append + data[index_to_write:]
 
     with open(edit_filename, 'w') as f:
         f.writelines(data)
 
 
-def cut_svg_by_mask(svg_filename, mask_filename): # TODO: отрефакторить этот момент!!!!!!!!
+def cut_svg_by_mask(svg_filename, mask_filename, idx): # TODO: отрефакторить этот момент!!!!!!!!
     paths, attributes, svg_attributes = svgpathtools.svg2paths2(svg_filename)
     mask_paths, mask_attributes, mask_svg_attributes = svgpathtools.svg2paths2(mask_filename)
 
@@ -101,8 +112,6 @@ def cut_svg_by_mask(svg_filename, mask_filename): # TODO: отрефактори
     in_attrs = []
     out_paths = []
     out_attrs = []
-    print(len(paths))
-    print(len(mask_paths))
     for i in range(len(paths)):
         inside = False
         for mask_path in mask_paths:
@@ -116,8 +125,23 @@ def cut_svg_by_mask(svg_filename, mask_filename): # TODO: отрефактори
             out_paths.append(paths[i])
             out_attrs.append(attributes[i])
 
-    svgpathtools.wsvg(in_paths, attributes=in_attrs, svg_attributes=svg_attributes, filename=TEST_IN)
-    append_common_tags(svg_filename, TEST_IN)
+    svgpathtools.wsvg(in_paths, attributes=in_attrs, svg_attributes=svg_attributes, filename=CUT_OBJECT_SVG_NAME(idx))
+    append_common_tags(svg_filename, CUT_OBJECT_SVG_NAME(idx))
 
-    svgpathtools.wsvg(out_paths, attributes=out_attrs, svg_attributes=svg_attributes, filename=TEST_OUT)
-    append_common_tags(svg_filename, TEST_OUT)
+    # out of mask
+    svgpathtools.wsvg(out_paths, attributes=out_attrs, svg_attributes=svg_attributes, filename=OUT_CUT_OBJECT_SVG_NAME())
+    append_common_tags(svg_filename, OUT_CUT_OBJECT_SVG_NAME())
+
+
+'''
+    Return: list of filenames of svg cut objects from masks
+'''
+def cut_all_svg_by_mask(svg_filename):
+    pathlib.Path(CUT_OBJECTS_TARGET).mkdir(parents=True, exist_ok=True)
+    cut_objects_filenames = []
+
+    for idx, svg_mask in enumerate(listdir(SVG_MASK_TARGET)):
+        cut_svg_by_mask(svg_filename, f'{SVG_MASK_TARGET}/{svg_mask}', idx)
+        cut_objects_filenames.append(CUT_OBJECT_SVG_NAME(idx))
+
+    return listdir(CUT_OBJECTS_TARGET)
