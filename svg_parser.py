@@ -106,6 +106,16 @@ def find_tags(content):
 
     return tags
 
+
+'''
+    Find all paths tags into content
+
+    Return array of paths (in tag-form)
+'''
+def find_paths(content):
+    return re.findall(r"(<path.*?/>)", content)
+
+
 '''
     Find all IDs used in svg (i.e. #name)
     

@@ -6,9 +6,11 @@ from pathlib import Path
 import cv2 as cv
 import matplotlib.pyplot as plt
 import numpy as np
+import svgpathtools
 from skimage import color
 from sklearn.cluster import KMeans
 from cut_by_mask import find_all_used_ids, append_common_tags
+from svg_parser import find_paths
 
 DIM = (500, 300)
 COLORS_IN_PALETTE = 6
@@ -123,33 +125,39 @@ def transfer_style(style, content_filename, is_first_file = False):
             content = f.read()
 
     print('Now processing file', content_filename)
-    newContent = changeColors(content, palette)
+    #newContent = changeColors(content, palette) # TODO: раскоментить
+    newContent = content
+    # Если первый файл, то просто выдаем то что есть и уходим
+    if is_first_file:
+        with open(STYLE_TRANSFERED_SVG, 'wb') as f:
+            f.write(newContent.encode('utf-8'))
+        return
+
+    # Иначе начинаем добавлять в существующий файл
     with open(NEW_CONTENT_TEMP_SVG, 'wb') as f:
       f.write(newContent.encode('utf-8'))
 
     # Вставляем id для градиентов всяких
-
     ids_content = find_all_used_ids(NEW_CONTENT_TEMP_SVG)
-    ids_already_in_result = []
-
-    if not is_first_file:
-        ids_already_in_result = find_all_used_ids(STYLE_TRANSFERED_SVG)
-    else:
-        f = open(STYLE_TRANSFERED_SVG, 'w')
+    ids_already_in_result = find_all_used_ids(STYLE_TRANSFERED_SVG)
 
     ids_to_add = list(filter(lambda id: id not in ids_already_in_result, ids_content))
+
     append_common_tags(NEW_CONTENT_TEMP_SVG, STYLE_TRANSFERED_SVG, ids_to_add)
 
-    # А теперь вставим svg сам
+    # Переносим пути из текущего контента (NEW_CONTENT_TEMP_SVG) в общий файл (STYLE_TRANSFERED_SVG)
+    # TODO: избавиться от двойного считывания, писать и ид-теги и пути сразу одним циклом
+    paths_new_content = find_paths(newContent)
+
     with open(STYLE_TRANSFERED_SVG, 'r') as f:
         data = f.readlines()
 
-    index_to_write = len(data) - 1
+        index_to_write = len(data) - 1
 
-    data = data[:index_to_write] + [''] + data[index_to_write:]
+        paths_new_content = list(map(lambda line: line + '\n', paths_new_content))
+        data = data[:index_to_write] + paths_new_content + data[index_to_write:]
 
     with open(STYLE_TRANSFERED_SVG, 'w') as f:
         f.writelines(data)
 
-    #with open(STYLE_TRANSFERED_SVG, 'wb') as f:
-      #  f.write(newContent.encode('utf-8'))
+    os.remove(NEW_CONTENT_TEMP_SVG)

@@ -76,9 +76,9 @@ def process_svg(path_to_svg):
 
 ## test stand
 styleMasks = process_style('sample1.jpg')
-#transfer_style(styleMasks[0], 'tempCutObjects/cutObject0.svg')
 svg_masks_filenames = process_svg('sample2 (result).svg')
+print(svg_masks_filenames)
 
-for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + styleMasks[0], svg_masks_filenames)):
-    print('Вот тут надо в один файл все сливать, проверять что повторов id нет, см методы в svg_parser-е')
+for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
+    print(f'Now processing mask number {idx}')
     transfer_style(style_mask, svg_filename, idx == 0)
