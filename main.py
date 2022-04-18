@@ -49,7 +49,7 @@ def process_style(path_to_style):
     1) Transform it to raster image with library 'cairosvg'
     2) Repeat I.1) - segment image to different classes of objects (class of 'trees', class of 'sky', etc)
     3) Cut the silhouette for every certain class. Silhouette - two-color image.
-    4) Process every mask - vectorization mask into SVG. # TODO: do not create file for it
+    4) Process every mask - vectorization mask into SVG.
     5) This vector we will use for library 'svgtools'
        to split processing SVG file into two vector. First vector will contain only objects from certain class
        (which belong to current mask), another vector will not contain it. Now we will continue loop with
@@ -77,7 +77,6 @@ def process_svg(path_to_svg):
 ## test stand
 styleMasks = process_style('sample1.jpg')
 svg_masks_filenames = process_svg('sample2 (result).svg')
-print(svg_masks_filenames)
 
 result_pathfile = None
 for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
@@ -85,5 +84,4 @@ for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]
     result_pathfile = transfer_style(style_mask, svg_filename, idx == 0)
 
 if result_pathfile is not None:
-    print(result_pathfile)
     sort_paths_tags(result_pathfile)

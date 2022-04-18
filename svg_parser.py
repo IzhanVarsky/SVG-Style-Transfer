@@ -193,11 +193,23 @@ def remove_groups_and_enumerate(file_path):
 
     return file_path.split('.')[0] + ' (prepared).svg'
 
+
+'''
+    Extract data-order attribute from the path provided by argument
+    
+    Return: integer number of order number    
+'''
 def get_order_path(path):
     order_attr = re.findall(r"data-order=\"[0-9]+\"", path)[0]
 
     return int(re.findall(r"[0-9]+", order_attr)[0])
 
+'''
+    Sort paths in the file (provided by path file_path) via
+    data-order attribute in the tag (example: <path d="..." data-order="1"/>)
+    
+    Return: nothing, write to the same file (file_path)
+'''
 def sort_paths_tags(file_path):
     with codecs.open(file_path, encoding='utf-8', errors='ignore') as f:
         content = f.read()

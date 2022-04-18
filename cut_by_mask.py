@@ -6,27 +6,29 @@ import svgpathtools
 from svg_parser import find_all_used_ids, find_tags_by_ids
 from os import listdir
 
-RASTER_MASK_TARGET = 'tempRasterMasks'
-SVG_MASK_TARGET = 'tempSvgMasks'
-CUT_OBJECTS_TARGET = 'tempCutObjects'
+RASTER_MASK_TARGET = 'temp/tempRasterMasks'
+SVG_MASK_TARGET = 'temp/tempSvgMasks'
+CUT_OBJECTS_TARGET = 'temp/tempCutObjects'
+
+TEMP_RASTER = 'tempRaster'
+TEMP_SVG = 'tempSvg'
 TEMP_OPTIMIZED = 'tempOptimized'
-TEMP = 'temp'
 CUT_OBJECT = 'cutObject'
 
 def TEMP_MASK_NAME(idx):
-    return RASTER_MASK_TARGET + '/' + TEMP + str(idx) + '.png'
+    return f'{RASTER_MASK_TARGET}/{TEMP_RASTER}{str(idx)}.png'
 
 def TEMP_SVG_NAME(idx):
-    return SVG_MASK_TARGET + '/' + TEMP + str(idx) + '.svg'
+    return f'{SVG_MASK_TARGET}/{TEMP_SVG}{str(idx)}.svg'
 
 def TEMP_OPTIMIZED_SVG_NAME(idx):
-    return SVG_MASK_TARGET + '/' + TEMP_OPTIMIZED + str(idx) + '.svg'
+    return f'{SVG_MASK_TARGET}/{TEMP_OPTIMIZED}{str(idx)}.svg'
 
 def CUT_OBJECT_SVG_NAME(idx):
-    return CUT_OBJECTS_TARGET + '/' + CUT_OBJECT + str(idx) + '.svg'
+    return f'{CUT_OBJECTS_TARGET}/{CUT_OBJECT}{str(idx)}.svg'
 
 def OUT_CUT_OBJECT_SVG_NAME():
-    return CUT_OBJECTS_TARGET + '/' + CUT_OBJECT + 'Out' + '.svg'
+    return f'{CUT_OBJECTS_TARGET}/{CUT_OBJECT}Out.svg'
 
 '''
     Save provided raster mask into file and vectorize it
@@ -50,6 +52,11 @@ def compile_mask_to_svg(idx, mask):
     os.remove(TEMP_SVG_NAME(idx))
 
 
+'''
+    Determine, whether one path is fully contained by another path
+    
+    Return: boolean value (true if contained, false otherwise)
+'''
 def is_contained_by(first, other):
        """Returns true if the path is fully contained in other closed path"""
        if not isinstance(first, svgpathtools.Path):
@@ -70,6 +77,11 @@ def is_contained_by(first, other):
        return svgpathtools.path_encloses_pt(pt, opt, other)
 
 
+'''
+    Flatten transformations in the given path
+    
+    Return: the same path without transforms
+'''
 def flatten(path, attr):
     args = re.findall(r"[0-9.]+", attr['transform'])
     if len(args) == 0:
