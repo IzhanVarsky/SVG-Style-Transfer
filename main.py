@@ -4,7 +4,7 @@ import cairosvg
 from segmentation.segmentation import Segmentation
 from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask, cut_all_svg_by_mask
 from color_transfer_legacy import transfer_style
-from svg_parser import remove_groups
+from svg_parser import remove_groups_and_enumerate, sort_paths_tags
 
 # TODO: provide NUMBER_OF_CLASSES into segmentation by constructor or check
 # the score and add threshold (to filter classes with low score of likeness)
@@ -45,7 +45,7 @@ def process_style(path_to_style):
 
 '''
  II. Processing vector image (that we want to recolor):
-    0) Pre - flatten all transforms and delete groups
+    0) Pre - flatten all transforms and delete groups, also enumerate paths
     1) Transform it to raster image with library 'cairosvg'
     2) Repeat I.1) - segment image to different classes of objects (class of 'trees', class of 'sky', etc)
     3) Cut the silhouette for every certain class. Silhouette - two-color image.
@@ -59,7 +59,7 @@ def process_style(path_to_style):
 '''
 def process_svg(path_to_svg):
     # II.0)
-    path_to_svg = remove_groups(path_to_svg)
+    path_to_svg = remove_groups_and_enumerate(path_to_svg)
     # TODO: добавить вот сюда дерганье flatten как-нибудь + мой svg_parser
     # II.1)
     rasterized = cairosvg.svg2png(url=path_to_svg)
@@ -79,6 +79,11 @@ styleMasks = process_style('sample1.jpg')
 svg_masks_filenames = process_svg('sample2 (result).svg')
 print(svg_masks_filenames)
 
+result_pathfile = None
 for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
     print(f'Now processing mask number {idx}')
-    transfer_style(style_mask, svg_filename, idx == 0)
+    result_pathfile = transfer_style(style_mask, svg_filename, idx == 0)
+
+if result_pathfile is not None:
+    print(result_pathfile)
+    sort_paths_tags(result_pathfile)

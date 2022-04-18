@@ -162,10 +162,11 @@ def find_tags_by_ids(file_path, ids):
 
 '''
     Remove groups by passing attributes to children of current node (inherit attributes)
+    Also enumerate all paths tags with data-order property, will use to arrange tags in right order
     
     Return nothing, make new file
 '''
-def remove_groups(file_path):
+def remove_groups_and_enumerate(file_path):
     with codecs.open(file_path, encoding='utf-8', errors='ignore') as f:
         content = f.read()
 
@@ -180,9 +181,51 @@ def remove_groups(file_path):
         tags.pop(group_position[0])
         group_position = find_pair_group(tags)
 
+    order = 1
+    for idx, line in enumerate(tags):
+        if '<path' in line:
+            tags[idx] = line[:-2] + f' data-order="{order}"' + line[-2:]
+            order += 1
+
     newContent = '\n'.join(tags)
-    with open(file_path.split('.')[0] + ' (removed groups).svg', 'wb') as f:
+    with open(file_path.split('.')[0] + ' (prepared).svg', 'wb') as f:
         f.write(newContent.encode('utf-8'))
 
-    return file_path.split('.')[0] + ' (removed groups).svg'
+    return file_path.split('.')[0] + ' (prepared).svg'
+
+def get_order_path(path):
+    order_attr = re.findall(r"data-order=\"[0-9]+\"", path)[0]
+
+    return int(re.findall(r"[0-9]+", order_attr)[0])
+
+def sort_paths_tags(file_path):
+    with codecs.open(file_path, encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+
+    tags = find_tags(content)
+    idx_start = None
+    idx_end = None # included
+    was_path = False
+    for idx, line in enumerate(tags):
+        if '<path' in line:
+            if (idx_start is None) or (not was_path):
+                idx_start = idx
+                idx_end = idx
+            else:
+                idx_end = idx
+
+            was_path = True
+        else:
+            was_path = False
+
+    if idx_start is None or idx_end is None:
+        return
+
+    paths = tags[idx_start : (idx_end + 1)]
+    sorted_paths = sorted(paths, key=lambda path: get_order_path(path))
+    sorted_tags = tags[:idx_start] + sorted_paths + tags[(idx_end + 1):]
+
+    sorted_tags = '\n'.join(sorted_tags)
+    with open(file_path, 'w') as f:
+        f.writelines(sorted_tags)
 

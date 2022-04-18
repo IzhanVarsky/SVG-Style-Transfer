@@ -116,6 +116,10 @@ def euclidean(coords):
     return (l - ll) ** 2 + (a - aa) ** 2 + (b - bb) ** 2
 
 
+'''
+
+    Return: filename of resulting svg (with transfered style)
+'''
 def transfer_style(style, content_filename, is_first_file = False):
     style = cv.resize(style, DIM, interpolation=cv.INTER_AREA)
 
@@ -125,8 +129,8 @@ def transfer_style(style, content_filename, is_first_file = False):
             content = f.read()
 
     print('Now processing file', content_filename)
-    #newContent = changeColors(content, palette) # TODO: раскоментить
-    newContent = content
+    newContent = changeColors(content, palette) # TODO: раскоментить
+    #newContent = content
     # Если первый файл, то просто выдаем то что есть и уходим
     if is_first_file:
         with open(STYLE_TRANSFERED_SVG, 'wb') as f:
@@ -161,3 +165,5 @@ def transfer_style(style, content_filename, is_first_file = False):
         f.writelines(data)
 
     os.remove(NEW_CONTENT_TEMP_SVG)
+
+    return STYLE_TRANSFERED_SVG
