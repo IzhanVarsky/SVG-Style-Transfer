@@ -91,7 +91,7 @@ def flatten(path, attr):
     x = float(args[0])
     y = float(args[1])
 
-    return path.translated(x + y * 1j)
+    return path.translated(x + y * 1j) # TODO: добавить еще какие-нибудь трансформации
 
 
 '''
@@ -128,6 +128,7 @@ def append_common_tags(svg_filename, edit_filename, ids = None):
 '''
 def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects): # TODO: отрефакторить этот момент!!!!!!!!
     if (idx == 0):
+        # TODO: вот тут можно не прокидывать свг и индекс, а делать это внутри
         remained_objects = svg_filename
     paths, attributes, svg_attributes = svgpathtools.svg2paths2(remained_objects)
     mask_paths, mask_attributes, mask_svg_attributes = svgpathtools.svg2paths2(mask_filename)

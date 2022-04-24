@@ -83,7 +83,7 @@ def extend_attributes(group_attributes, group_position, tags):
             if attr in cur_tag_attributes:
                 if attr != "transform":
                     continue
-                cur_tag_attributes[attr] = cur_tag_attributes[attr] + ' ' + group_attributes[attr]
+                cur_tag_attributes[attr] = cur_tag_attributes[attr] + ' ' + group_attributes[attr] # TODO: а если это будет цвет? Не получится ли фигня?
             else:
                 cur_tag_attributes[attr] = group_attributes[attr]
 
