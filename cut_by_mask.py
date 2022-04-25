@@ -197,6 +197,8 @@ def cut_all_svg_by_mask(svg_filename):
     for idx, svg_mask in enumerate(listdir(SVG_MASK_TARGET)):
         cut_svg_by_mask(svg_filename, f'{SVG_MASK_TARGET}/{svg_mask}', idx, OUT_CUT_OBJECT_SVG_NAME())
 
-    cut_objects_filenames = map(lambda cur_name: f'{CUT_OBJECTS_TARGET}/{cur_name}', os.listdir(CUT_OBJECTS_TARGET))
+    cut_objects_filenames = []
+    for cur_name in os.listdir(CUT_OBJECTS_TARGET):
+        cut_objects_filenames.append(f'{CUT_OBJECTS_TARGET}/{cur_name}')
 
     return cut_objects_filenames

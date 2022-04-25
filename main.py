@@ -37,11 +37,11 @@ def read_svg(path_to_svg):
     2) Cut the mask for every certain class. The mask should contains objects only from one type,
        while everything else should be covered with 'black' color (rgb (0, 0, 0))
        
-    Result: raster images with mask of objects for every class
+    Result: raster images with mask of objects for every class and top-{NUMBER_OF_CLASSES} predicted classes
 '''
 def process_style(path_to_style):
-    masks = segmentaizer.segment(path_to_style)
-    return masks
+    masks, predicted_classes = segmentaizer.segment(path_to_style)
+    return masks, predicted_classes
 
 '''
  II. Processing vector image (that we want to recolor):
@@ -57,14 +57,14 @@ def process_style(path_to_style):
     
     Result: vectors where the each vector contain objects only from certain class
 '''
-def process_svg(path_to_svg):
+def process_svg(path_to_svg, predicted_style_obects):
     # II.0)
     path_to_svg = remove_groups_and_enumerate(path_to_svg)
     # TODO: добавить вот сюда дерганье flatten как-нибудь + мой svg_parser
     # II.1)
     rasterized = cairosvg.svg2png(url=path_to_svg)
     # II.2) and II.3)
-    silhouettes = segmentaizer.segment(rasterized, from_byte=True, silhouette=True)
+    silhouettes, predicted_classes = segmentaizer.segment(rasterized, from_byte=True, silhouette=True, predicted_style_obects = predicted_style_obects)
     # II.4)
     for idx, silhouette in enumerate(silhouettes):
         compile_mask_to_svg(idx, silhouette)
@@ -75,8 +75,8 @@ def process_svg(path_to_svg):
     return svg_cut_objects_filenames
 
 ## test stand
-styleMasks = process_style('sample1.jpg')
-svg_masks_filenames = process_svg('sample2 (result).svg')
+styleMasks, style_classes = process_style('sample1.jpg')
+svg_masks_filenames = process_svg('sample2 (result).svg', style_classes)
 
 result_pathfile = None
 for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):

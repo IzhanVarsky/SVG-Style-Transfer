@@ -44,9 +44,9 @@ class Segmentation:
     from_byte attribute is for reading vector file after we convert it to raster
     (so we can do not save it as file)
     path_to_image = byte array of image if from_byte flag is True
-    Return array of masks (simple masks or silhouette if specified)
+    Return array of masks (simple masks or silhouette if specified) and top-{NUMBER_OF_CLASSES} classes
     '''
-    def segment(self, path_to_image, from_byte = False, silhouette = False):
+    def segment(self, path_to_image, from_byte = False, silhouette = False, predicted_style_obects = None):
         if from_byte:
             pil_image = PIL.Image.open(io.BytesIO(path_to_image)).convert('RGB')
         else:
@@ -66,13 +66,30 @@ class Segmentation:
         predicted_classes = numpy.bincount(pred.flatten()).argsort()[::-1]
         masks = []
         if silhouette:
-            for c in predicted_classes[:self.NUMBER_OF_CLASSES]:
+            # Когда режем маски векторов, у нас уже есть топ-5 классов от стиля (для которых мы маски нарендерели)
+            # Нужно посмотреть, нет ли среди 2 * Number_Of_Classes (TODO вот тут)
+            # Таких же классов, если что добавляем их, остальное забиваем тем что есть (по приоритету, они уже отсорчены)
+            print(predicted_style_obects)
+            print(predicted_classes[:self.NUMBER_OF_CLASSES * 2])
+
+            content_classes = []
+            cur_free_idx = 0
+            for style_class in predicted_style_obects:
+                if style_class in predicted_classes[:self.NUMBER_OF_CLASSES * 2]:
+                    content_classes.append(style_class)
+                else:
+                    while predicted_classes[cur_free_idx] in content_classes:
+                        cur_free_idx += 1
+                    content_classes.append(predicted_classes[cur_free_idx])
+            print(content_classes)
+
+            for c in content_classes:
                 masks.append(self.__get_silhouette_mask(img_original, pred, c))
         else:
             for c in predicted_classes[:self.NUMBER_OF_CLASSES]:
                 masks.append(self.__get_mask(img_original, pred, c))
 
-        return masks
+        return masks, predicted_classes[:self.NUMBER_OF_CLASSES]
 
     '''
     Return two dimensional array (Row x Column, where each element is array of [R, G, B])
