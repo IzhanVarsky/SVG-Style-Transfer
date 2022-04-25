@@ -241,3 +241,37 @@ def sort_paths_tags(file_path):
     with open(file_path, 'w') as f:
         f.writelines(sorted_tags)
 
+def toRGB(hexa):
+    if len(hexa) == 3:
+        return tuple(int(hexa[i] + hexa[i], 16) for i in range(3))
+    return tuple(int(hexa[i:i + 2], 16) for i in (0, 2, 4))
+
+def remove_white_colors(file_path):
+    with codecs.open(file_path, encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+
+    tags = find_tags(content)
+    tags_to_append = []
+
+    for idx, tag in enumerate(tags):
+        if tag.startswith('</'):
+            tags_to_append.append(tag)
+            continue
+
+        cur_tag_attributes = inherit_attributes(tag)
+        has_white_color = False
+        for attr in cur_tag_attributes:
+            if attr == 'fill':
+                print(cur_tag_attributes[attr])
+                print(toRGB(cur_tag_attributes[attr][1:]))
+                r, g, b = toRGB(cur_tag_attributes[attr][1:])
+                if (r > 240 and g > 240 and b > 240): # TODO: константы менять
+                    has_white_color = True
+                break
+
+        if not has_white_color:
+            tags_to_append.append(tag)
+
+    return tags_to_append
+
+

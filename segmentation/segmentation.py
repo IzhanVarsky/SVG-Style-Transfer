@@ -85,7 +85,7 @@ class Segmentation:
             #print(f'{self.names[index + 1]}:')
 
         # colorize prediction
-        silhouette_mask = colorEncode(pred, self.colors).astype(numpy.uint8)
+        silhouette_mask = self.__colorize(pred, img).astype(numpy.uint8)
 
         # aggregate images and save
         compare_images = numpy.concatenate((img, silhouette_mask), axis=1)
@@ -126,7 +126,33 @@ class Segmentation:
         for i in range(labelmap.shape[0]):
             for j in range(labelmap.shape[1]):
                 if labelmap[i][j] < 0:
-                    continue
-                newImage[i][j] = img[i][j]
+                    newImage[i][j] = numpy.array([255, 255, 255], int)
+                else:
+                    newImage[i][j] = img[i][j]
 
         return newImage
+
+    def __colorize(self, labelmap, img):
+        labelmap = labelmap.astype('int')
+        newImage = numpy.zeros((labelmap.shape[0], labelmap.shape[1], 3),
+                               dtype=numpy.uint8)
+
+        for i in range(labelmap.shape[0]):
+            for j in range(labelmap.shape[1]):
+                if self.__check_neighbours(i, j, labelmap):
+                    newImage[i][j] = numpy.array([255, 255, 255], int)
+                else:
+                    newImage[i][j] = numpy.array([0, 0, 0], int)
+
+        return newImage
+
+    '''
+        Paint border-pixels in black and other pixels in white
+        
+        Return: true if need to paint it white, false otherwise
+    '''
+    def __check_neighbours(self, i, j, labelmap):
+        ln, lm = labelmap.shape
+        return labelmap[i][j] < 0 or \
+                (0 < i < ln - 1 and labelmap[i - 1][j] >= 0 and labelmap[i + 1][j] >= 0
+                 and 0 < j < lm - 1 and labelmap[i][j - 1] >= 0 and labelmap[i][j + 1] >= 0)

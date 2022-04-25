@@ -3,7 +3,7 @@ import re
 import pathlib
 import PIL.Image
 import svgpathtools
-from svg_parser import find_all_used_ids, find_tags_by_ids
+from svg_parser import find_all_used_ids, find_tags_by_ids, remove_white_colors
 from os import listdir
 
 RASTER_MASK_TARGET = 'temp/tempRasterMasks'
@@ -42,14 +42,31 @@ def compile_mask_to_svg(idx, mask):
     pathlib.Path(SVG_MASK_TARGET).mkdir(parents=True, exist_ok=True)
 
     # TODO: обратить внимание в 2.1 делаю cairo.svg2png, тут тоже должен быть png значит
-    os.system('vtracer -i {targetJpg} -g 2 -f 16 -p 8 -s 10 -o {targetSvg}'
+    os.system('potracer {targetJpg} -o {targetSvg}'
               .format(targetJpg = TEMP_MASK_NAME(idx), targetSvg = TEMP_SVG_NAME(idx)))
 
     # optimizing
     os.system('scour -i {targetSvg} -o {targetOptimizedSvg} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none'
               .format(targetSvg=TEMP_SVG_NAME(idx), targetOptimizedSvg=TEMP_OPTIMIZED_SVG_NAME(idx)))
 
+    # TODO: вот тут удаляем околобелые цвета из свгшки!!!!!!!!
+    #filtered_colors = remove_white_colors(TEMP_OPTIMIZED_SVG_NAME(idx))
+
+    #with open(TEMP_OPTIMIZED_SVG_NAME(idx), 'w') as f:
+     #   f.writelines('\n'.join(filtered_colors))
+
     os.remove(TEMP_SVG_NAME(idx))
+
+
+def path_encloses_pt(pt, opt, path):
+    """returns true if pt is a point enclosed by path (which must be a Path
+    object satisfying path.isclosed==True).  opt is a point you know is
+    NOT enclosed by path."""
+    intersections = svgpathtools.Path(svgpathtools.Line(pt, opt)).intersect(path)
+    if len(intersections) % 2:
+        return True
+    else:
+        return False
 
 
 '''
@@ -74,7 +91,7 @@ def is_contained_by(first, other):
 
        opt = complex(xmin-1, ymin-1)
 
-       return svgpathtools.path_encloses_pt(pt, opt, other)
+       return path_encloses_pt(pt, opt, other)
 
 
 '''
@@ -83,6 +100,9 @@ def is_contained_by(first, other):
     Return: the same path without transforms
 '''
 def flatten(path, attr):
+    if 'transform' not in attr:
+        return path
+
     args = re.findall(r"[0-9.]+", attr['transform'])
     if len(args) == 0:
         args.append('0')
@@ -145,7 +165,7 @@ def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects): # TODO:
         for mask_path in mask_paths:
             if inside:
                 break
-            inside = is_contained_by(paths[i], mask_path)
+            inside = is_contained_by(mask_path, paths[i])
         if inside:
             in_paths.append(paths[i])
             in_attrs.append(attributes[i])
