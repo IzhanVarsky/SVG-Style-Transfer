@@ -5,6 +5,7 @@ from segmentation.segmentation import Segmentation
 from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask, cut_all_svg_by_mask
 from color_transfer_legacy import transfer_style
 from svg_parser import remove_groups_and_enumerate, sort_paths_tags
+from gram_loss import style_loss
 
 # TODO: provide NUMBER_OF_CLASSES into segmentation by constructor or check
 # the score and add threshold (to filter classes with low score of likeness)
@@ -75,7 +76,7 @@ def process_svg(path_to_svg, predicted_style_obects):
     return svg_cut_objects_filenames
 
 ## test stand
-styleMasks, style_classes = process_style('sample1.jpg')
+styleMasks, style_classes = process_style('sample1recolor.jpg')
 svg_masks_filenames = process_svg('sample2 (result).svg', style_classes)
 
 result_pathfile = None
@@ -85,3 +86,7 @@ for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]
 
 if result_pathfile is not None:
     sort_paths_tags(result_pathfile)
+
+cairosvg.svg2png(url=result_pathfile, write_to='result_gram.png')
+print(style_loss(result_image='result_gram.png', style_image='sample1recolor.jpg'))
+print(style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))

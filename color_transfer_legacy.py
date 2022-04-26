@@ -66,9 +66,14 @@ def extractPalette(img, count_colors):
 
     rgbTuples = tuple(map(tuple, rgbCentres.astype(int)))
     hexColors = []
-    for tupl in rgbTuples:
+    cluster_centers = []
+    for idx, tupl in enumerate(rgbTuples):
+        #r, g, b = tupl
+        #if (r > 240 and g > 240 and b > 240):  # TODO: константы менять
+         #   continue
         hexColors.append('#%02x%02x%02x' % tupl)
-    return (hexColors, clusters.cluster_centers_)
+        cluster_centers.append(clusters.cluster_centers_[idx])
+    return (hexColors, cluster_centers)
 
 def findIndex(curColor, array):
     for idx, sub in enumerate(array):
@@ -78,14 +83,13 @@ def findIndex(curColor, array):
 def findByValue(hexToLab, value):
     return list(hexToLab.keys())[findIndex(value, list(hexToLab.values()))]
 
-def changeColors(content, palette):
+def changeColors(content, palette, is_sorted_version = True):
     colorsToChange = re.findall(r"#[0-9a-fA-F]{6}", content)
     colorsToChange = list(dict.fromkeys(colorsToChange))
 
     allColors = colorsToChange
     allHEX = colorsToChange + palette[0]
-    print(allColors)
-    print(palette[0])
+
     print(len(allColors), 'colors were found in this file\n')
     allColors = [toRGB(hexaHashTag[1:]) for hexaHashTag in allColors]
 
@@ -99,11 +103,19 @@ def changeColors(content, palette):
     indexes = [findIndex(i, allLAB) for i in palette[1]]
     indexes.sort()
 
+    frequency_index_change = (len(allLAB) - len(indexes)) // len(indexes) + 1
+    # сколько индексов не из списка (indexes) уже прошло
+    true_indecies_spent = 0
     curColorIndex = 0
     for idx, color in enumerate(allLAB):
         if (idx in indexes):
-            curColorIndex = min(curColorIndex + 1, len(indexes) - 1)
+            if is_sorted_version:
+                curColorIndex = min(curColorIndex + 1, len(indexes) - 1)
+            else:
+                if true_indecies_spent % frequency_index_change == 0:
+                    curColorIndex = min(curColorIndex + 1, len(indexes) - 1)
         else:
+            true_indecies_spent += 1
             color1 = findByValue(hexToLab, color)
             color2 = findByValue(hexToLab, allLAB[indexes[curColorIndex]])
             content = content.replace(color1.upper(), color2.upper())
@@ -129,8 +141,7 @@ def transfer_style(style, content_filename, is_first_file = False):
             content = f.read()
 
     print('Now processing file', content_filename)
-    newContent = changeColors(content, palette) # TODO: раскоментить
-    #newContent = content
+    newContent = changeColors(content, palette)
     # Если первый файл, то просто выдаем то что есть и уходим
     if is_first_file:
         with open(STYLE_TRANSFERED_SVG, 'wb') as f:
