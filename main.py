@@ -3,17 +3,9 @@ import cv2 as cv
 import cairosvg
 from segmentation.segmentation import Segmentation
 from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask, cut_all_svg_by_mask
-from color_transfer_legacy import transfer_style
+from color_transfer import transfer_style
 from svg_parser import remove_groups_and_enumerate, sort_paths_tags
 from gram_loss import style_loss
-
-# TODO: provide NUMBER_OF_CLASSES into segmentation by constructor or check
-# the score and add threshold (to filter classes with low score of likeness)
-
-# TODO: what if some objects can not be segment? How to change color or extract?
-# think about it and add it to documentary (plan with points)
-
-# TODO: do not create file for vectorize silhouettes (II.4))
 
 DIM = (500, 300)
 segmentaizer = Segmentation()
@@ -61,7 +53,6 @@ def process_style(path_to_style):
 def process_svg(path_to_svg, predicted_style_obects):
     # II.0)
     path_to_svg = remove_groups_and_enumerate(path_to_svg)
-    # TODO: добавить вот сюда дерганье flatten как-нибудь + мой svg_parser
     # II.1)
     rasterized = cairosvg.svg2png(url=path_to_svg)
     # II.2) and II.3)
@@ -87,6 +78,7 @@ for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]
 if result_pathfile is not None:
     sort_paths_tags(result_pathfile)
 
-cairosvg.svg2png(url=result_pathfile, write_to='result_gram.png')
-print(style_loss(result_image='result_gram.png', style_image='sample1recolor.jpg'))
-print(style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
+# Метрики Грама TODO
+#cairosvg.svg2png(url=result_pathfile, write_to='result_gram.png')
+#print(style_loss(result_image='result_gram.png', style_image='sample1recolor.jpg'))
+#print(style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))

@@ -29,7 +29,6 @@ def style_loss(result_image, style_image):
     R_red, R_green, R_blue = calc_gram(result_image)
     S_red, S_green, S_blue = calc_gram(style_image)
     channels = 3
-    # TODO: привести к одинакову размеру картинки перед высчитыванием метрик
     width, height = R_red.shape
     mse_all = (mse(R_red, S_red) + mse(R_green, S_green) + mse(R_blue, S_blue)) / (4.0 * width * height * (channels ** 2))
     

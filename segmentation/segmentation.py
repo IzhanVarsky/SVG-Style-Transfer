@@ -67,7 +67,7 @@ class Segmentation:
         masks = []
         if silhouette:
             # Когда режем маски векторов, у нас уже есть топ-5 классов от стиля (для которых мы маски нарендерели)
-            # Нужно посмотреть, нет ли среди 2 * Number_Of_Classes (TODO вот тут)
+            # Нужно посмотреть, нет ли среди 2 * Number_Of_Classes
             # Таких же классов, если что добавляем их, остальное забиваем тем что есть (по приоритету, они уже отсорчены)
             print(predicted_style_obects)
             print(predicted_classes[:self.NUMBER_OF_CLASSES * 2])

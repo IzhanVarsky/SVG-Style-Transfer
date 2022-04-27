@@ -69,7 +69,7 @@ def extractPalette(img, count_colors):
     cluster_centers = []
     for idx, tupl in enumerate(rgbTuples):
         #r, g, b = tupl
-        #if (r > 240 and g > 240 and b > 240):  # TODO: константы менять
+        #if (r > 240 and g > 240 and b > 240):
          #   continue
         hexColors.append('#%02x%02x%02x' % tupl)
         cluster_centers.append(clusters.cluster_centers_[idx])
@@ -161,7 +161,6 @@ def transfer_style(style, content_filename, is_first_file = False):
     append_common_tags(NEW_CONTENT_TEMP_SVG, STYLE_TRANSFERED_SVG, ids_to_add)
 
     # Переносим пути из текущего контента (NEW_CONTENT_TEMP_SVG) в общий файл (STYLE_TRANSFERED_SVG)
-    # TODO: избавиться от двойного считывания, писать и ид-теги и пути сразу одним циклом
     paths_new_content = find_paths(newContent)
 
     with open(STYLE_TRANSFERED_SVG, 'r') as f:

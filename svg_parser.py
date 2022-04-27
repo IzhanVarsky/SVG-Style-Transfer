@@ -78,12 +78,12 @@ def extend_attributes(group_attributes, group_position, tags):
             else:
                 cur_tag_attributes[attr] = group_attributes[attr]
         '''
-        # Нужно поиследовать, кто там что наследует
+
         for attr in group_attributes:
             if attr in cur_tag_attributes:
                 if attr != "transform":
                     continue
-                cur_tag_attributes[attr] = cur_tag_attributes[attr] + ' ' + group_attributes[attr] # TODO: а если это будет цвет? Не получится ли фигня?
+                cur_tag_attributes[attr] = cur_tag_attributes[attr] + ' ' + group_attributes[attr]
             else:
                 cur_tag_attributes[attr] = group_attributes[attr]
 
@@ -265,7 +265,7 @@ def remove_white_colors(file_path):
                 print(cur_tag_attributes[attr])
                 print(toRGB(cur_tag_attributes[attr][1:]))
                 r, g, b = toRGB(cur_tag_attributes[attr][1:])
-                if (r > 240 and g > 240 and b > 240): # TODO: константы менять
+                if (r > 240 and g > 240 and b > 240):
                     has_white_color = True
                 break
 

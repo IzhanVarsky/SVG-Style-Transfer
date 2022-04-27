@@ -41,7 +41,6 @@ def compile_mask_to_svg(idx, mask):
     PIL.Image.fromarray(mask).save(TEMP_MASK_NAME(idx))
     pathlib.Path(SVG_MASK_TARGET).mkdir(parents=True, exist_ok=True)
 
-    # TODO: обратить внимание в 2.1 делаю cairo.svg2png, тут тоже должен быть png значит
     os.system('potracer {targetJpg} -o {targetSvg}'
               .format(targetJpg = TEMP_MASK_NAME(idx), targetSvg = TEMP_SVG_NAME(idx)))
 
@@ -49,7 +48,6 @@ def compile_mask_to_svg(idx, mask):
     os.system('scour -i {targetSvg} -o {targetOptimizedSvg} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none'
               .format(targetSvg=TEMP_SVG_NAME(idx), targetOptimizedSvg=TEMP_OPTIMIZED_SVG_NAME(idx)))
 
-    # TODO: вот тут удаляем околобелые цвета из свгшки!!!!!!!!
     #filtered_colors = remove_white_colors(TEMP_OPTIMIZED_SVG_NAME(idx))
 
     #with open(TEMP_OPTIMIZED_SVG_NAME(idx), 'w') as f:
@@ -111,7 +109,7 @@ def flatten(path, attr):
     x = float(args[0])
     y = float(args[1])
 
-    return path.translated(x + y * 1j) # TODO: добавить еще какие-нибудь трансформации
+    return path.translated(x + y * 1j)
 
 
 '''
@@ -121,7 +119,7 @@ def flatten(path, attr):
     Return: nothing, edit file and write declarations of ids in it
 '''
 def append_common_tags(svg_filename, edit_filename, ids = None):
-    if ids == None: # TODO: check this
+    if ids == None:
         ids = find_all_used_ids(edit_filename)
     tags_to_append = find_tags_by_ids(svg_filename, ids)
 
@@ -146,9 +144,8 @@ def append_common_tags(svg_filename, edit_filename, ids = None):
     
     Return: nothing, create file for objects inside mask and outside it
 '''
-def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects): # TODO: отрефакторить этот момент!!!!!!!!
+def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects):
     if (idx == 0):
-        # TODO: вот тут можно не прокидывать свг и индекс, а делать это внутри
         remained_objects = svg_filename
     paths, attributes, svg_attributes = svgpathtools.svg2paths2(remained_objects)
     mask_paths, mask_attributes, mask_svg_attributes = svgpathtools.svg2paths2(mask_filename)
