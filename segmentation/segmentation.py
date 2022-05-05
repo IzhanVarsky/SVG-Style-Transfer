@@ -69,8 +69,8 @@ class Segmentation:
             # Когда режем маски векторов, у нас уже есть топ-5 классов от стиля (для которых мы маски нарендерели)
             # Нужно посмотреть, нет ли среди 2 * Number_Of_Classes
             # Таких же классов, если что добавляем их, остальное забиваем тем что есть (по приоритету, они уже отсорчены)
-            print(predicted_style_obects)
-            print(predicted_classes[:self.NUMBER_OF_CLASSES * 2])
+            #print(predicted_style_obects)
+            #print(predicted_classes[:self.NUMBER_OF_CLASSES * 2])
 
             content_classes = []
             cur_free_idx = 0
@@ -81,7 +81,7 @@ class Segmentation:
                     while predicted_classes[cur_free_idx] in content_classes:
                         cur_free_idx += 1
                     content_classes.append(predicted_classes[cur_free_idx])
-            print(content_classes)
+            #print(content_classes)
 
             for c in content_classes:
                 masks.append(self.__get_silhouette_mask(img_original, pred, c))
@@ -107,9 +107,7 @@ class Segmentation:
         # aggregate images and save
         compare_images = numpy.concatenate((img, silhouette_mask), axis=1)
         #show image
-        plt.imshow(PIL.Image.fromarray(compare_images))
-        plt.axis('off')
-        plt.show()
+        #self.__show_image(compare_images)
 
         return silhouette_mask
 
@@ -129,9 +127,7 @@ class Segmentation:
         # aggregate images and save
         compare_images = numpy.concatenate((img, mask), axis=1)
         #show image
-        plt.imshow(PIL.Image.fromarray(compare_images))
-        plt.axis('off')
-        plt.show()
+        #self.__show_image(compare_images)
 
         return mask
 
@@ -173,3 +169,8 @@ class Segmentation:
         return labelmap[i][j] < 0 or \
                 (0 < i < ln - 1 and labelmap[i - 1][j] >= 0 and labelmap[i + 1][j] >= 0
                  and 0 < j < lm - 1 and labelmap[i][j - 1] >= 0 and labelmap[i][j + 1] >= 0)
+
+    def __show_image(self, compare_images):
+        plt.imshow(PIL.Image.fromarray(compare_images))
+        plt.axis('off')
+        plt.show()

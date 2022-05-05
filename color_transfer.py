@@ -62,7 +62,7 @@ def extractPalette(img, count_colors):
     steps = width / rgbCentres.shape[0]
     for idx, centers in enumerate(rgbCentres):
         showImg[:, int(idx * steps):(int((idx + 1) * steps)), :] = centers
-    show_img_compar(showImg)
+    #show_img_compar(showImg)
 
     rgbTuples = tuple(map(tuple, rgbCentres.astype(int)))
     hexColors = []
@@ -90,7 +90,7 @@ def changeColors(content, palette, is_sorted_version = True):
     allColors = colorsToChange
     allHEX = colorsToChange + palette[0]
 
-    print(len(allColors), 'colors were found in this file\n')
+    #print(len(allColors), 'colors were found in this file\n')
     allColors = [toRGB(hexaHashTag[1:]) for hexaHashTag in allColors]
 
     lab = np.concatenate((rgb2lab(allColors), palette[1]), axis=0)

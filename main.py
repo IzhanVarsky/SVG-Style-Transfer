@@ -83,7 +83,7 @@ svg_masks_filenames = process_svg('sample2 (result).svg', style_classes)
 
 result_pathfile = None
 for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
-    print(f'Now processing mask number {idx}')
+    #print(f'Now processing mask number {idx}')
     result_pathfile = transfer_style(style_mask, svg_filename, idx == 0)
 
 if result_pathfile is not None:
