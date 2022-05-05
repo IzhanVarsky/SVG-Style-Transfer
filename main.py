@@ -1,6 +1,9 @@
 import codecs
 import cv2 as cv
 import cairosvg
+import numpy
+import PIL.Image
+import io
 from segmentation.segmentation import Segmentation
 from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask, cut_all_svg_by_mask
 from color_transfer import transfer_style
@@ -66,6 +69,14 @@ def process_svg(path_to_svg, predicted_style_obects):
 
     return svg_cut_objects_filenames
 
+def full_style_transfer(style_filename, content_filename):
+    pil_image = PIL.Image.open(style_filename).convert('RGB')
+    style = numpy.array(pil_image)
+    result_pathfile = transfer_style(style, content_filename, True, 'naiveResult.svg')
+
+    return result_pathfile
+
+
 ## test stand
 styleMasks, style_classes = process_style('sample1recolor.jpg')
 svg_masks_filenames = process_svg('sample2 (result).svg', style_classes)
@@ -79,6 +90,9 @@ if result_pathfile is not None:
     sort_paths_tags(result_pathfile)
 
 # Метрики Грама TODO
-#cairosvg.svg2png(url=result_pathfile, write_to='result_gram.png')
-#print(style_loss(result_image='result_gram.png', style_image='sample1recolor.jpg'))
-#print(style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
+cairosvg.svg2png(url=result_pathfile, write_to='result_gram.png')
+print('My', style_loss(result_image='result_gram.png', style_image='sample1recolor.jpg'))
+print('Their', style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
+
+cairosvg.svg2png(url=full_style_transfer('sample1recolor.jpg', 'sample2 (result).svg'), write_to='naive_gram.png')
+print('Full style transfer', style_loss(result_image='naive_gram.png', style_image='sample1recolor.jpg'))

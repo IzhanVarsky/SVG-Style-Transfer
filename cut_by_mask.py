@@ -1,11 +1,13 @@
 import os
 import re
+import shutil
 import pathlib
 import PIL.Image
 import svgpathtools
 from svg_parser import find_all_used_ids, find_tags_by_ids, remove_white_colors
 from os import listdir
 
+TEMP_FOLDER = 'temp'
 RASTER_MASK_TARGET = 'temp/tempRasterMasks'
 SVG_MASK_TARGET = 'temp/tempSvgMasks'
 CUT_OBJECTS_TARGET = 'temp/tempCutObjects'
@@ -36,6 +38,10 @@ def OUT_CUT_OBJECT_SVG_NAME():
     Return: nothing, create file for mask (in svg format)
 '''
 def compile_mask_to_svg(idx, mask):
+    if os.path.exists(TEMP_FOLDER):
+        shutil.rmtree(TEMP_FOLDER)
+    pathlib.Path(TEMP_FOLDER).mkdir(parents=True, exist_ok=True)
+
     pathlib.Path(RASTER_MASK_TARGET).mkdir(parents=True, exist_ok=True)
 
     PIL.Image.fromarray(mask).save(TEMP_MASK_NAME(idx))

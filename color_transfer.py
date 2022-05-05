@@ -132,7 +132,7 @@ def euclidean(coords):
 
     Return: filename of resulting svg (with transfered style)
 '''
-def transfer_style(style, content_filename, is_first_file = False):
+def transfer_style(style, content_filename, is_first_file = False, save_to_path = None):
     style = cv.resize(style, DIM, interpolation=cv.INTER_AREA)
 
     palette = extractPalette(style, COLORS_IN_PALETTE)
@@ -144,9 +144,14 @@ def transfer_style(style, content_filename, is_first_file = False):
     newContent = changeColors(content, palette)
     # Если первый файл, то просто выдаем то что есть и уходим
     if is_first_file:
-        with open(STYLE_TRANSFERED_SVG, 'wb') as f:
-            f.write(newContent.encode('utf-8'))
-        return
+        if save_to_path is None:
+            with open(STYLE_TRANSFERED_SVG, 'wb') as f:
+                f.write(newContent.encode('utf-8'))
+            return STYLE_TRANSFERED_SVG
+        else:
+            with open(save_to_path, 'wb') as f:
+                f.write(newContent.encode('utf-8'))
+            return save_to_path
 
     # Иначе начинаем добавлять в существующий файл
     with open(NEW_CONTENT_TEMP_SVG, 'wb') as f:
