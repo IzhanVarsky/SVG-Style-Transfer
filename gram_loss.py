@@ -2,7 +2,7 @@ import PIL.Image
 import numpy
 
 def calc_gram(path_to_image):
-    pil_image = PIL.Image.open(path_to_image).convert('RGB')
+    pil_image = PIL.Image.open(path_to_image).convert('RGB').resize((500, 300), PIL.Image.ANTIALIAS)
     img_original = numpy.array(pil_image)
 
     width, height, _ = img_original.shape

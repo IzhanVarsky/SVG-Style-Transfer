@@ -69,30 +69,39 @@ def process_svg(path_to_svg, predicted_style_obects):
 
     return svg_cut_objects_filenames
 
-def full_style_transfer(style_filename, content_filename):
+def full_style_transfer(style_filename, content_filename, save_svg):
     pil_image = PIL.Image.open(style_filename).convert('RGB')
     style = numpy.array(pil_image)
-    result_pathfile = transfer_style(style, content_filename, True, 'naiveResult.svg')
+    result_pathfile = transfer_style(style, content_filename, True, save_svg)
 
     return result_pathfile
 
+def make_transfer_style(content_path, style_path, save_raster_to, save_full_raster_to, save_svg_to, save_full_svg_to):
+    styleMasks, style_classes = process_style(style_path)
+    svg_masks_filenames = process_svg(content_path, style_classes)
 
-## test stand
-styleMasks, style_classes = process_style('sample1recolor.jpg')
-svg_masks_filenames = process_svg('sample2 (result).svg', style_classes)
+    result_pathfile = None
+    for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
+        # print(f'Now processing mask number {idx}')
+        result_pathfile = transfer_style(style_mask, svg_filename, idx == 0, save_svg_to)
 
-result_pathfile = None
-for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
-    #print(f'Now processing mask number {idx}')
-    result_pathfile = transfer_style(style_mask, svg_filename, idx == 0)
+    if result_pathfile is not None:
+        sort_paths_tags(result_pathfile)
 
-if result_pathfile is not None:
-    sort_paths_tags(result_pathfile)
+    cairosvg.svg2png(url=result_pathfile, write_to=save_raster_to)
+    loss = style_loss(result_image=save_raster_to, style_image=style_path)
 
-# Метрики Грама TODO
-cairosvg.svg2png(url=result_pathfile, write_to='result_gram.png')
-print('My', style_loss(result_image='result_gram.png', style_image='sample1recolor.jpg'))
-print('Their', style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
+    cairosvg.svg2png(url=full_style_transfer(style_path, content_path, save_full_svg_to), write_to=save_full_raster_to)
+    full_trasfer_loss = style_loss(result_image=save_full_raster_to, style_image=style_path)
 
-cairosvg.svg2png(url=full_style_transfer('sample1recolor.jpg', 'sample2 (result).svg'), write_to='naive_gram.png')
-print('Full style transfer', style_loss(result_image='naive_gram.png', style_image='sample1recolor.jpg'))
+    return loss, full_trasfer_loss
+
+if __name__ == '__main__':
+    ## test stand
+    loss, full_trasfer_loss = make_transfer_style('sample2 (result).svg', 'sample1recolor.jpg', 'result_gram.png', 'full_result_gram.png', 'result_svg.svg', 'full_result_svg.svg')
+    print(loss, full_trasfer_loss)
+
+    # Метрики Грама TODO
+    #print('Their', style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
+
+

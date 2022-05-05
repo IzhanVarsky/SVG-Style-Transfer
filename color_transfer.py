@@ -134,6 +134,8 @@ def euclidean(coords):
 '''
 def transfer_style(style, content_filename, is_first_file = False, save_to_path = None):
     style = cv.resize(style, DIM, interpolation=cv.INTER_AREA)
+    if save_to_path is None:
+        save_to_path = STYLE_TRANSFERED_SVG
 
     palette = extractPalette(style, COLORS_IN_PALETTE)
 
@@ -144,14 +146,9 @@ def transfer_style(style, content_filename, is_first_file = False, save_to_path 
     newContent = changeColors(content, palette)
     # Если первый файл, то просто выдаем то что есть и уходим
     if is_first_file:
-        if save_to_path is None:
-            with open(STYLE_TRANSFERED_SVG, 'wb') as f:
-                f.write(newContent.encode('utf-8'))
-            return STYLE_TRANSFERED_SVG
-        else:
-            with open(save_to_path, 'wb') as f:
-                f.write(newContent.encode('utf-8'))
-            return save_to_path
+        with open(save_to_path, 'wb') as f:
+            f.write(newContent.encode('utf-8'))
+        return save_to_path
 
     # Иначе начинаем добавлять в существующий файл
     with open(NEW_CONTENT_TEMP_SVG, 'wb') as f:
@@ -159,16 +156,16 @@ def transfer_style(style, content_filename, is_first_file = False, save_to_path 
 
     # Вставляем id для градиентов всяких
     ids_content = find_all_used_ids(NEW_CONTENT_TEMP_SVG)
-    ids_already_in_result = find_all_used_ids(STYLE_TRANSFERED_SVG)
+    ids_already_in_result = find_all_used_ids(save_to_path)
 
     ids_to_add = list(filter(lambda id: id not in ids_already_in_result, ids_content))
 
-    append_common_tags(NEW_CONTENT_TEMP_SVG, STYLE_TRANSFERED_SVG, ids_to_add)
+    append_common_tags(NEW_CONTENT_TEMP_SVG, save_to_path, ids_to_add)
 
-    # Переносим пути из текущего контента (NEW_CONTENT_TEMP_SVG) в общий файл (STYLE_TRANSFERED_SVG)
+    # Переносим пути из текущего контента (NEW_CONTENT_TEMP_SVG) в общий файл (save_to_path)
     paths_new_content = find_paths(newContent)
 
-    with open(STYLE_TRANSFERED_SVG, 'r') as f:
+    with open(save_to_path, 'r') as f:
         data = f.readlines()
 
         index_to_write = len(data) - 1
@@ -176,9 +173,9 @@ def transfer_style(style, content_filename, is_first_file = False, save_to_path 
         paths_new_content = list(map(lambda line: line + '\n', paths_new_content))
         data = data[:index_to_write] + paths_new_content + data[index_to_write:]
 
-    with open(STYLE_TRANSFERED_SVG, 'w') as f:
+    with open(save_to_path, 'w') as f:
         f.writelines(data)
 
     os.remove(NEW_CONTENT_TEMP_SVG)
 
-    return STYLE_TRANSFERED_SVG
+    return save_to_path
