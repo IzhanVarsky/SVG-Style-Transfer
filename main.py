@@ -11,6 +11,7 @@ from svg_parser import remove_groups_and_enumerate, sort_paths_tags
 from gram_loss import style_loss
 
 DIM = (500, 300)
+INF = 1000000
 segmentaizer = Segmentation()
 
 def read_image(path_to_image):
@@ -77,22 +78,31 @@ def full_style_transfer(style_filename, content_filename, save_svg):
     return result_pathfile
 
 def make_transfer_style(content_path, style_path, save_raster_to, save_full_raster_to, save_svg_to, save_full_svg_to):
-    styleMasks, style_classes = process_style(style_path)
-    svg_masks_filenames = process_svg(content_path, style_classes)
+    loss = INF
+    full_trasfer_loss = INF
 
-    result_pathfile = None
-    for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
-        # print(f'Now processing mask number {idx}')
-        result_pathfile = transfer_style(style_mask, svg_filename, idx == 0, save_svg_to)
+    try:
+        styleMasks, style_classes = process_style(style_path)
+        svg_masks_filenames = process_svg(content_path, style_classes)
 
-    if result_pathfile is not None:
-        sort_paths_tags(result_pathfile)
+        result_pathfile = None
+        for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
+            # print(f'Now processing mask number {idx}')
+            result_pathfile = transfer_style(style_mask, svg_filename, idx == 0, save_svg_to)
 
-    cairosvg.svg2png(url=result_pathfile, write_to=save_raster_to)
-    loss = style_loss(result_image=save_raster_to, style_image=style_path)
+        if result_pathfile is not None:
+            sort_paths_tags(result_pathfile)
 
-    cairosvg.svg2png(url=full_style_transfer(style_path, content_path, save_full_svg_to), write_to=save_full_raster_to)
-    full_trasfer_loss = style_loss(result_image=save_full_raster_to, style_image=style_path)
+        cairosvg.svg2png(url=result_pathfile, write_to=save_raster_to)
+        loss = style_loss(result_image=save_raster_to, style_image=style_path)
+    except Exception:
+        pass
+
+    try:
+        cairosvg.svg2png(url=full_style_transfer(style_path, content_path, save_full_svg_to), write_to=save_full_raster_to)
+        full_trasfer_loss = style_loss(result_image=save_full_raster_to, style_image=style_path)
+    except Exception:
+        pass
 
     return loss, full_trasfer_loss
 
