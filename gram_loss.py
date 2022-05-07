@@ -1,6 +1,8 @@
 import PIL.Image
 import numpy
 
+INF = 10000
+
 def calc_gram(path_to_image):
     pil_image = PIL.Image.open(path_to_image).convert('RGB').resize((500, 300), PIL.Image.ANTIALIAS)
     img_original = numpy.array(pil_image)
@@ -19,11 +21,14 @@ def calc_gram(path_to_image):
 
 def mse(matrix1, matrix2):
     width, height = matrix1.shape
-    sum = 0
-    for i in range(width):
-        for j in range(height):
-            sum += ((matrix1[i][j] - matrix2[i][j]) ** 2)
-    return sum
+    summa = 0
+    try:
+        for i in range(width):
+            for j in range(height):
+                    summa += ((matrix1[i][j] - matrix2[i][j]) ** 2)
+    except RuntimeWarning:
+        summa = INF
+    return summa
 
 def style_loss(result_image, style_image):
     R_red, R_green, R_blue = calc_gram(result_image)
@@ -31,6 +36,6 @@ def style_loss(result_image, style_image):
     channels = 3
     coef = 1000
     width, height = R_red.shape
-    mse_all = coef * (mse(R_red, S_red) + mse(R_green, S_green) + mse(R_blue, S_blue)) / (4.0 * width * height * (channels ** 2))
+    mse_all = (mse(R_red, S_red) + mse(R_green, S_green) + mse(R_blue, S_blue)) / (4.0 * width * height * (channels ** 2)) * coef
     
     return mse_all

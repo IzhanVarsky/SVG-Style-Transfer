@@ -86,9 +86,15 @@ def make_transfer_style(content_path, style_path, save_raster_to, save_full_rast
         svg_masks_filenames = process_svg(content_path, style_classes)
 
         result_pathfile = None
-        for idx, (style_mask, svg_filename) in enumerate(zip(styleMasks + [styleMasks[0]], svg_masks_filenames)):
+        content_idx = 0
+        for style_idx, style_mask in enumerate(styleMasks):
+            svg_filename = svg_masks_filenames[content_idx]
+            if (str(style_idx) not in svg_filename) and (style_idx != len(styleMasks) - 1):
+                continue
             # print(f'Now processing mask number {idx}')
-            result_pathfile = transfer_style(style_mask, svg_filename, idx == 0, save_svg_to)
+            print(content_idx, style_idx)
+            content_idx += 1
+            result_pathfile = transfer_style(style_mask, svg_filename, content_idx == 1, save_svg_to)
 
         if result_pathfile is not None:
             sort_paths_tags(result_pathfile)

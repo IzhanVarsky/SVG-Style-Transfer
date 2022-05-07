@@ -2,6 +2,7 @@ from os import listdir
 from main import make_transfer_style
 
 SVGS = 'metrics/svg_dataset'
+STYLES = 'metrics/styles_dataset'
 RASTER_RESULT = 'metrics/raster_result'
 FULL_RASTER_RESULT = 'metrics/full_raster_result'
 SVG_RESULT = 'metrics/svg_result'
@@ -14,8 +15,7 @@ for idx, name in enumerate(listdir(SVGS)):
     name_without_ext = name.split('.')[0]
     print('Index:', idx)
     print('Current svg', cur_svg)
-    style_path = 'sample1recolor.jpg'
-
+    style_path = f'{STYLES}/{idx}.jpg'
 
     raster = f'{RASTER_RESULT}/{name_without_ext}.png'
     full_raster = f'{FULL_RASTER_RESULT}/{name_without_ext}.png'

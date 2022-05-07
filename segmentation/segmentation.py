@@ -88,6 +88,7 @@ class Segmentation:
         else:
             for c in predicted_classes[:self.NUMBER_OF_CLASSES]:
                 masks.append(self.__get_mask(img_original, pred, c))
+            masks.append(self.__get_mask(img_original, pred))
 
         return masks, predicted_classes[:self.NUMBER_OF_CLASSES]
 
