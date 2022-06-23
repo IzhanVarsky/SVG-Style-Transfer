@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (Diploma)" project-jdk-type="Python SDK" />
+  <component name="ClojureProjectResolveSettings">
+    <currentScheme>IDE</currentScheme>
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (SVG-Style-Transfer)" project-jdk-type="Python SDK" />
 </project>
