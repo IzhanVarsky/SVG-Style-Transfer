@@ -10,4 +10,8 @@ matplotlib
 sklearn
 scikit-image
 svgpathtools
+
 cairosvg
+wand
+svglib
+reportlab

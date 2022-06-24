@@ -1,18 +1,21 @@
 import codecs
 import cv2 as cv
-import cairosvg
 import numpy
 import PIL.Image
 import io
-from segmentation.segmentation import Segmentation
+from segmentation import Segmentation
 from cut_by_mask import compile_mask_to_svg, cut_svg_by_mask, cut_all_svg_by_mask
 from color_transfer import transfer_style
 from svg_parser import remove_groups_and_enumerate, sort_paths_tags
 from gram_loss import style_loss
+from svg_render import cairo_render_from_file, wand_render_from_file
 
 DIM = (500, 300)
 INF = 1000000
 segmentaizer = Segmentation()
+
+render_func = wand_render_from_file
+
 
 def read_image(path_to_image):
     image = cv.imread(path_to_image)
@@ -28,6 +31,7 @@ def read_svg(path_to_svg):
 
         return svg
 
+
 '''
  I. Processing raster image (style):
     1) Segment image to different classes of objects (class of 'trees', class of 'sky', etc)
@@ -36,9 +40,12 @@ def read_svg(path_to_svg):
        
     Result: raster images with mask of objects for every class and top-{NUMBER_OF_CLASSES} predicted classes
 '''
+
+
 def process_style(path_to_style):
     masks, predicted_classes = segmentaizer.segment(path_to_style)
     return masks, predicted_classes
+
 
 '''
  II. Processing vector image (that we want to recolor):
@@ -54,13 +61,16 @@ def process_style(path_to_style):
     
     Result: vectors where the each vector contain objects only from certain class
 '''
+
+
 def process_svg(path_to_svg, predicted_style_obects):
     # II.0)
     path_to_svg = remove_groups_and_enumerate(path_to_svg)
     # II.1)
-    rasterized = cairosvg.svg2png(url=path_to_svg)
+    rasterized = render_func(path_to_svg)
     # II.2) and II.3)
-    silhouettes, predicted_classes = segmentaizer.segment(rasterized, from_byte=True, silhouette=True, predicted_style_obects = predicted_style_obects)
+    silhouettes, predicted_classes = segmentaizer.segment(rasterized, from_byte=True, silhouette=True,
+                                                          predicted_style_obects=predicted_style_obects)
     # II.4)
     for idx, silhouette in enumerate(silhouettes):
         compile_mask_to_svg(idx, silhouette)
@@ -70,12 +80,14 @@ def process_svg(path_to_svg, predicted_style_obects):
 
     return svg_cut_objects_filenames
 
+
 def full_style_transfer(style_filename, content_filename, save_svg):
     pil_image = PIL.Image.open(style_filename).convert('RGB')
     style = numpy.array(pil_image)
     result_pathfile = transfer_style(style, content_filename, True, save_svg)
 
     return result_pathfile
+
 
 def make_transfer_style(content_path, style_path, save_raster_to, save_full_raster_to, save_svg_to, save_full_svg_to):
     loss = INF
@@ -99,25 +111,26 @@ def make_transfer_style(content_path, style_path, save_raster_to, save_full_rast
         if result_pathfile is not None:
             sort_paths_tags(result_pathfile)
 
-        cairosvg.svg2png(url=result_pathfile, write_to=save_raster_to)
+        render_func(result_pathfile, save_raster_to)
         loss = style_loss(result_image=save_raster_to, style_image=style_path)
     except Exception:
         pass
 
     try:
-        cairosvg.svg2png(url=full_style_transfer(style_path, content_path, save_full_svg_to), write_to=save_full_raster_to)
+        render_func(full_style_transfer(style_path, content_path, save_full_svg_to),
+                    save_full_raster_to)
         full_trasfer_loss = style_loss(result_image=save_full_raster_to, style_image=style_path)
     except Exception:
         pass
 
     return loss, full_trasfer_loss
 
+
 if __name__ == '__main__':
     ## test stand
-    loss, full_trasfer_loss = make_transfer_style('sample2 (result).svg', 'sample1recolor.jpg', 'result_gram.png', 'full_result_gram.png', 'result_svg.svg', 'full_result_svg.svg')
+    loss, full_trasfer_loss = make_transfer_style('3742013529.svg', 'istockphoto-168643984-612x612.jpg', 'result_gram.png',
+                                                  'full_result_gram.png', 'result_svg.svg', 'full_result_svg.svg')
     print(loss, full_trasfer_loss)
 
     # Метрики Грама TODO
-    #print('Their', style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
-
-
+    # print('Their', style_loss(result_image='test_gram_2.png', style_image='test_gram_1.jpeg'))
