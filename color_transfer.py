@@ -25,11 +25,14 @@ def show_img_compar(img_1):
     plt.axis('off')
     plt.show()
 
+
 def rgb2lab(arr):
     return color.rgb2lab(arr)
 
+
 def lab2rgb(arr):
     return color.lab2rgb(arr)
+
 
 def labRgbMult255(array):
     rgbCentres = []
@@ -42,11 +45,14 @@ def labRgbMult255(array):
 
     return np.array(rgbCentres)
 
+
 def toRGB(hexa):
     return tuple(int(hexa[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
+
 def toHex(rgb):
     return '#%02x%02x%02x' % rgb
+
 
 # extract main colors from "file-color"
 def extractPalette(img, count_colors):
@@ -62,35 +68,38 @@ def extractPalette(img, count_colors):
     steps = width / rgbCentres.shape[0]
     for idx, centers in enumerate(rgbCentres):
         showImg[:, int(idx * steps):(int((idx + 1) * steps)), :] = centers
-    #show_img_compar(showImg)
+    # show_img_compar(showImg)
 
     rgbTuples = tuple(map(tuple, rgbCentres.astype(int)))
     hexColors = []
     cluster_centers = []
     for idx, tupl in enumerate(rgbTuples):
-        #r, g, b = tupl
-        #if (r > 240 and g > 240 and b > 240):
-         #   continue
+        # r, g, b = tupl
+        # if (r > 240 and g > 240 and b > 240):
+        #   continue
         hexColors.append('#%02x%02x%02x' % tupl)
         cluster_centers.append(clusters.cluster_centers_[idx])
-    return (hexColors, cluster_centers)
+    return hexColors, cluster_centers
+
 
 def findIndex(curColor, array):
     for idx, sub in enumerate(array):
         if np.array_equal(sub, curColor):
             return idx
 
+
 def findByValue(hexToLab, value):
     return list(hexToLab.keys())[findIndex(value, list(hexToLab.values()))]
 
-def changeColors(content, palette, is_sorted_version = True):
+
+def changeColors(content, palette, is_sorted_version=True):
     colorsToChange = re.findall(r"#[0-9a-fA-F]{6}", content)
     colorsToChange = list(dict.fromkeys(colorsToChange))
 
     allColors = colorsToChange
     allHEX = colorsToChange + palette[0]
 
-    #print(len(allColors), 'colors were found in this file\n')
+    # print(len(allColors), 'colors were found in this file\n')
     allColors = [toRGB(hexaHashTag[1:]) for hexaHashTag in allColors]
 
     lab = np.concatenate((rgb2lab(allColors), palette[1]), axis=0)
@@ -122,8 +131,9 @@ def changeColors(content, palette, is_sorted_version = True):
             content = content.replace(color1, color2.upper())
     return content
 
+
 def euclidean(coords):
-    ll, aa, bb = (0, -128, -128) #lab0
+    ll, aa, bb = (0, -128, -128)  # lab0
     l, a, b = coords
     return (l - ll) ** 2 + (a - aa) ** 2 + (b - bb) ** 2
 
@@ -132,7 +142,9 @@ def euclidean(coords):
 
     Return: filename of resulting svg (with transfered style)
 '''
-def transfer_style(style, content_filename, is_first_file = False, save_to_path = None):
+
+
+def transfer_style(style, content_filename, is_first_file=False, save_to_path=None):
     style = cv.resize(style, DIM, interpolation=cv.INTER_AREA)
     if save_to_path is None:
         save_to_path = STYLE_TRANSFERED_SVG
@@ -140,7 +152,7 @@ def transfer_style(style, content_filename, is_first_file = False, save_to_path 
     palette = extractPalette(style, COLORS_IN_PALETTE)
 
     with codecs.open(content_filename, encoding='utf-8', errors='ignore') as f:
-            content = f.read()
+        content = f.read()
 
     print('Now processing file', content_filename)
     newContent = changeColors(content, palette)
@@ -152,7 +164,7 @@ def transfer_style(style, content_filename, is_first_file = False, save_to_path 
 
     # Иначе начинаем добавлять в существующий файл
     with open(NEW_CONTENT_TEMP_SVG, 'wb') as f:
-      f.write(newContent.encode('utf-8'))
+        f.write(newContent.encode('utf-8'))
 
     # Вставляем id для градиентов всяких
     ids_content = find_all_used_ids(NEW_CONTENT_TEMP_SVG)

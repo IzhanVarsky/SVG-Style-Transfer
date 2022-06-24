@@ -1,3 +1,5 @@
 .idea
 *venv
 __pycache__/
+style_masks
+*.zip

@@ -1,4 +1,7 @@
 import codecs
+import os
+import traceback
+
 import cv2 as cv
 import numpy
 import PIL.Image
@@ -15,6 +18,9 @@ INF = 1000000
 segmentaizer = Segmentation()
 
 render_func = wand_render_from_file
+
+style_masks_folder = "style_masks"
+os.makedirs(style_masks_folder, exist_ok=True)
 
 
 def read_image(path_to_image):
@@ -84,7 +90,8 @@ def process_svg(path_to_svg, predicted_style_obects):
 def full_style_transfer(style_filename, content_filename, save_svg):
     pil_image = PIL.Image.open(style_filename).convert('RGB')
     style = numpy.array(pil_image)
-    result_pathfile = transfer_style(style, content_filename, True, save_svg)
+    result_pathfile = transfer_style(style, content_filename,
+                                     is_first_file=True, save_to_path=save_svg)
 
     return result_pathfile
 
@@ -95,6 +102,10 @@ def make_transfer_style(content_path, style_path, save_raster_to, save_full_rast
 
     try:
         styleMasks, style_classes = process_style(style_path)
+        for i, mask in enumerate(styleMasks[:-1]):
+            PIL.Image.fromarray(mask, mode='RGB') \
+                .save(f"{style_masks_folder}/{i}_mask_{segmentaizer.names[style_classes[i] + 1]}.png", 'PNG')
+            print(f"Mask {i}: {style_classes[i]}")
         svg_masks_filenames = process_svg(content_path, style_classes)
 
         result_pathfile = None
@@ -113,22 +124,25 @@ def make_transfer_style(content_path, style_path, save_raster_to, save_full_rast
 
         render_func(result_pathfile, save_raster_to)
         loss = style_loss(result_image=save_raster_to, style_image=style_path)
-    except Exception:
-        pass
+    except Exception as e:
+        print("ERROR1:", e)
+        traceback.print_exc()
 
     try:
         render_func(full_style_transfer(style_path, content_path, save_full_svg_to),
                     save_full_raster_to)
         full_trasfer_loss = style_loss(result_image=save_full_raster_to, style_image=style_path)
-    except Exception:
-        pass
+    except Exception as e:
+        print("ERROR2:", e)
+        traceback.print_exc()
 
     return loss, full_trasfer_loss
 
 
 if __name__ == '__main__':
     ## test stand
-    loss, full_trasfer_loss = make_transfer_style('3742013529.svg', 'istockphoto-168643984-612x612.jpg', 'result_gram.png',
+    loss, full_trasfer_loss = make_transfer_style('3742013529.svg', 'istockphoto-168643984-612x612.jpg',
+                                                  'result_gram.png',
                                                   'full_result_gram.png', 'result_svg.svg', 'full_result_svg.svg')
     print(loss, full_trasfer_loss)
 

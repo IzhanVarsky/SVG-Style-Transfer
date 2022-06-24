@@ -6,6 +6,7 @@ from mit_semseg.utils import colorEncode
 import matplotlib.pyplot as plt
 import io
 
+
 class Segmentation:
     NUMBER_OF_CLASSES = 5
 
@@ -46,7 +47,8 @@ class Segmentation:
     path_to_image = byte array of image if from_byte flag is True
     Return array of masks (simple masks or silhouette if specified) and top-{NUMBER_OF_CLASSES} classes
     '''
-    def segment(self, path_to_image, from_byte = False, silhouette = False, predicted_style_obects = None):
+
+    def segment(self, path_to_image, from_byte=False, silhouette=False, predicted_style_obects=None):
         if from_byte:
             pil_image = PIL.Image.open(io.BytesIO(path_to_image)).convert('RGB')
         else:
@@ -69,8 +71,8 @@ class Segmentation:
             # Когда режем маски векторов, у нас уже есть топ-5 классов от стиля (для которых мы маски нарендерели)
             # Нужно посмотреть, нет ли среди 2 * Number_Of_Classes
             # Таких же классов, если что добавляем их, остальное забиваем тем что есть (по приоритету, они уже отсорчены)
-            #print(predicted_style_obects)
-            #print(predicted_classes[:self.NUMBER_OF_CLASSES * 2])
+            # print(predicted_style_obects)
+            # print(predicted_classes[:self.NUMBER_OF_CLASSES * 2])
 
             content_classes = []
             cur_free_idx = 0
@@ -81,7 +83,7 @@ class Segmentation:
                     while predicted_classes[cur_free_idx] in content_classes:
                         cur_free_idx += 1
                     content_classes.append(predicted_classes[cur_free_idx])
-            #print(content_classes)
+            # print(content_classes)
 
             for c in content_classes:
                 masks.append(self.__get_silhouette_mask(img_original, pred, c))
@@ -95,40 +97,42 @@ class Segmentation:
     '''
     Return two dimensional array (Row x Column, where each element is array of [R, G, B])
     '''
+
     def __get_silhouette_mask(self, img, pred, index=None):
         # filter prediction class if requested
         if index is not None:
             pred = pred.copy()
             pred[pred != index] = -1
-            #print(f'{self.names[index + 1]}:')
+            # print(f'{self.names[index + 1]}:')
 
         # colorize prediction
         silhouette_mask = self.__colorize(pred, img).astype(numpy.uint8)
 
         # aggregate images and save
         compare_images = numpy.concatenate((img, silhouette_mask), axis=1)
-        #show image
-        #self.__show_image(compare_images)
+        # show image
+        # self.__show_image(compare_images)
 
         return silhouette_mask
 
     '''
     Return two dimensional array (Row x Column, where each element is array of [R, G, B])
     '''
+
     def __get_mask(self, img, pred, index=None):
         # filter prediction class if requested
         if index is not None:
             pred = pred.copy()
             pred[pred != index] = -1
-            #print(f'{self.names[index + 1]}:')
+            # print(f'{self.names[index + 1]}:')
 
         # colorize prediction
         mask = self.__cutMask(pred, img).astype(numpy.uint8)
 
         # aggregate images and save
         compare_images = numpy.concatenate((img, mask), axis=1)
-        #show image
-        #self.__show_image(compare_images)
+        # show image
+        # self.__show_image(compare_images)
 
         return mask
 
@@ -165,11 +169,12 @@ class Segmentation:
         
         Return: true if need to paint it white, false otherwise
     '''
+
     def __check_neighbours(self, i, j, labelmap):
         ln, lm = labelmap.shape
         return labelmap[i][j] < 0 or \
-                (0 < i < ln - 1 and labelmap[i - 1][j] >= 0 and labelmap[i + 1][j] >= 0
-                 and 0 < j < lm - 1 and labelmap[i][j - 1] >= 0 and labelmap[i][j + 1] >= 0)
+               (0 < i < ln - 1 and labelmap[i - 1][j] >= 0 and labelmap[i + 1][j] >= 0
+                and 0 < j < lm - 1 and labelmap[i][j - 1] >= 0 and labelmap[i][j + 1] >= 0)
 
     def __show_image(self, compare_images):
         plt.imshow(PIL.Image.fromarray(compare_images))

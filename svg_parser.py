@@ -188,10 +188,12 @@ def remove_groups_and_enumerate(file_path):
             order += 1
 
     newContent = '\n'.join(tags)
-    with open(file_path.split('.')[0] + ' (prepared).svg', 'wb') as f:
-        f.write(newContent.encode('utf-8'))
-
-    return file_path.split('.')[0] + ' (prepared).svg'
+    res_path = file_path.split('.')[0] + ' (prepared).svg'
+    with open(res_path, 'w') as f:
+        f.write(newContent)
+    with open("check.svg", 'w') as f:
+        f.write(newContent)
+    return res_path
 
 
 '''
