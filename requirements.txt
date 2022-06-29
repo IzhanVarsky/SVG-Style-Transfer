@@ -15,3 +15,7 @@ cairosvg
 wand
 svglib
 reportlab
+
+#potracer
+#potracer-cli
+#scour

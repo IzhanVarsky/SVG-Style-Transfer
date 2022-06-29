@@ -17,26 +17,34 @@ TEMP_SVG = 'tempSvg'
 TEMP_OPTIMIZED = 'tempOptimized'
 CUT_OBJECT = 'cutObject'
 
+
 def TEMP_MASK_NAME(idx):
     return f'{RASTER_MASK_TARGET}/{TEMP_RASTER}{str(idx)}.png'
+
 
 def TEMP_SVG_NAME(idx):
     return f'{SVG_MASK_TARGET}/{TEMP_SVG}{str(idx)}.svg'
 
+
 def TEMP_OPTIMIZED_SVG_NAME(idx):
     return f'{SVG_MASK_TARGET}/{TEMP_OPTIMIZED}{str(idx)}.svg'
+
 
 def CUT_OBJECT_SVG_NAME(idx):
     return f'{CUT_OBJECTS_TARGET}/{CUT_OBJECT}{str(idx)}.svg'
 
+
 def OUT_CUT_OBJECT_SVG_NAME():
     return f'{CUT_OBJECTS_TARGET}/{CUT_OBJECT}Out.svg'
+
 
 '''
     Save provided raster mask into file and vectorize it
     
     Return: nothing, create file for mask (in svg format)
 '''
+
+
 def compile_mask_to_svg(idx, mask):
     if os.path.exists(TEMP_FOLDER):
         shutil.rmtree(TEMP_FOLDER)
@@ -47,19 +55,17 @@ def compile_mask_to_svg(idx, mask):
     PIL.Image.fromarray(mask).save(TEMP_MASK_NAME(idx))
     pathlib.Path(SVG_MASK_TARGET).mkdir(parents=True, exist_ok=True)
 
-    os.system('potracer {targetJpg} -o {targetSvg}'
-              .format(targetJpg = TEMP_MASK_NAME(idx), targetSvg = TEMP_SVG_NAME(idx)))
+    os.system(f'potracer {TEMP_MASK_NAME(idx)} -o {TEMP_SVG_NAME(idx)}')
 
     # optimizing
-    os.system('scour -i {targetSvg} -o {targetOptimizedSvg} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none'
-              .format(targetSvg=TEMP_SVG_NAME(idx), targetOptimizedSvg=TEMP_OPTIMIZED_SVG_NAME(idx)))
+    os.system(f'scour -i {TEMP_SVG_NAME(idx)} -o {TEMP_OPTIMIZED_SVG_NAME(idx)} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none')
 
-    #filtered_colors = remove_white_colors(TEMP_OPTIMIZED_SVG_NAME(idx))
+    # filtered_colors = remove_white_colors(TEMP_OPTIMIZED_SVG_NAME(idx))
 
-    #with open(TEMP_OPTIMIZED_SVG_NAME(idx), 'w') as f:
-     #   f.writelines('\n'.join(filtered_colors))
+    # with open(TEMP_OPTIMIZED_SVG_NAME(idx), 'w') as f:
+    #   f.writelines('\n'.join(filtered_colors))
 
-    os.remove(TEMP_SVG_NAME(idx))
+    # os.remove(TEMP_SVG_NAME(idx))
 
 
 def path_encloses_pt(pt, opt, path):
@@ -78,24 +84,26 @@ def path_encloses_pt(pt, opt, path):
     
     Return: boolean value (true if contained, false otherwise)
 '''
+
+
 def is_contained_by(first, other):
-       """Returns true if the path is fully contained in other closed path"""
-       if not isinstance(first, svgpathtools.Path):
-           return False
+    """Returns true if the path is fully contained in other closed path"""
+    if not isinstance(first, svgpathtools.Path):
+        return False
 
-       if not first != other:
-           return False
+    if not first != other:
+        return False
 
-       pt = first.point(0)
-       xmin, xmax, ymin, ymax = other.bbox()
-       pt_in_bbox = (xmin <= pt.real <= xmax) and (ymin <= pt.imag <= ymax)
+    pt = first.point(0)
+    xmin, xmax, ymin, ymax = other.bbox()
+    pt_in_bbox = (xmin <= pt.real <= xmax) and (ymin <= pt.imag <= ymax)
 
-       if not pt_in_bbox:
-           return False
+    if not pt_in_bbox:
+        return False
 
-       opt = complex(xmin-1, ymin-1)
+    opt = complex(xmin - 1, ymin - 1)
 
-       return path_encloses_pt(pt, opt, other)
+    return path_encloses_pt(pt, opt, other)
 
 
 '''
@@ -103,6 +111,8 @@ def is_contained_by(first, other):
     
     Return: the same path without transforms
 '''
+
+
 def flatten(path, attr):
     if 'transform' not in attr:
         return path
@@ -124,7 +134,9 @@ def flatten(path, attr):
     
     Return: nothing, edit file and write declarations of ids in it
 '''
-def append_common_tags(svg_filename, edit_filename, ids = None):
+
+
+def append_common_tags(svg_filename, edit_filename, ids=None):
     if ids == None:
         ids = find_all_used_ids(edit_filename)
     tags_to_append = find_tags_by_ids(svg_filename, ids)
@@ -150,6 +162,8 @@ def append_common_tags(svg_filename, edit_filename, ids = None):
     
     Return: nothing, create file for objects inside mask and outside it
 '''
+
+
 def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects):
     if (idx == 0):
         remained_objects = svg_filename
@@ -177,7 +191,8 @@ def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects):
             out_attrs.append(attributes[i])
 
     if (len(in_paths) != 0):
-        svgpathtools.wsvg(in_paths, attributes=in_attrs, svg_attributes=svg_attributes, filename=CUT_OBJECT_SVG_NAME(idx))
+        svgpathtools.wsvg(in_paths, attributes=in_attrs, svg_attributes=svg_attributes,
+                          filename=CUT_OBJECT_SVG_NAME(idx))
         append_common_tags(svg_filename, CUT_OBJECT_SVG_NAME(idx))
 
     # out of mask
@@ -185,7 +200,8 @@ def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects):
         if (os.path.exists(OUT_CUT_OBJECT_SVG_NAME())):
             os.remove(OUT_CUT_OBJECT_SVG_NAME())
 
-        svgpathtools.wsvg(out_paths, attributes=out_attrs, svg_attributes=svg_attributes, filename=OUT_CUT_OBJECT_SVG_NAME())
+        svgpathtools.wsvg(out_paths, attributes=out_attrs, svg_attributes=svg_attributes,
+                          filename=OUT_CUT_OBJECT_SVG_NAME())
         append_common_tags(svg_filename, OUT_CUT_OBJECT_SVG_NAME())
 
 
@@ -194,6 +210,8 @@ def cut_svg_by_mask(svg_filename, mask_filename, idx, remained_objects):
 
     Return: list of filenames of svg cut objects from masks
 '''
+
+
 def cut_all_svg_by_mask(svg_filename):
     pathlib.Path(CUT_OBJECTS_TARGET).mkdir(parents=True, exist_ok=True)
 

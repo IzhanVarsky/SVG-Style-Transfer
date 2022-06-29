@@ -5,7 +5,7 @@ import codecs
     Find in array indices of opening and closing tag
     With the provided name
     
-    Return indices (start, end)
+    Return indices (start, end)+
 '''
 def find_pair_group(arr, name_tag = 'g'):
     startPosition = -1
@@ -98,13 +98,15 @@ def extend_attributes(group_attributes, group_position, tags):
     Return array of tags
 '''
 def find_tags(content):
-    tags = []
-
-    parsed = re.findall(r"(<.*?/>)|(<.*?>)|(</.*?>)", content)
-    for tagTuple in parsed:
-        tags.append(tagTuple[0] or tagTuple[1] or tagTuple[2])
-
-    return tags
+    def old():
+        tags = []
+        parsed = re.findall(r"(<.*?/>)|(<.*?>)|(</.*?>)", content)
+        for tagTuple in parsed:
+            tags.append(tagTuple[0] or tagTuple[1] or tagTuple[2])
+        return tags
+    def new():
+        pass
+    return old()
 
 
 '''
@@ -169,7 +171,7 @@ def find_tags_by_ids(file_path, ids):
 def remove_groups_and_enumerate(file_path):
     with codecs.open(file_path, encoding='utf-8', errors='ignore') as f:
         content = f.read()
-
+    content = content.replace("\n", "")
     tags = find_tags(content)
 
     group_position = find_pair_group(tags)

@@ -142,8 +142,10 @@ def make_transfer_style(content_path, style_path, save_raster_to, save_full_rast
 if __name__ == '__main__':
     ## test stand
     loss, full_trasfer_loss = make_transfer_style('3742013529.svg', 'istockphoto-168643984-612x612.jpg',
-                                                  'result_gram.png',
-                                                  'full_result_gram.png', 'result_svg.svg', 'full_result_svg.svg')
+                                                  save_raster_to='result_gram.png',
+                                                  save_full_raster_to='full_result_gram.png',
+                                                  save_svg_to='result_svg.svg',
+                                                  save_full_svg_to='full_result_svg.svg')
     print(loss, full_trasfer_loss)
 
     # Метрики Грама TODO
