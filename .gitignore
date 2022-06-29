@@ -1,6 +1,9 @@
 .idea
 *venv
 __pycache__/
-style_masks
 *.zip
-segmentation_old
+
+styles
+results
+style_masks
+temp

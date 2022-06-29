@@ -21,6 +21,8 @@ render_func = wand_render_from_file
 
 style_masks_folder = "style_masks"
 os.makedirs(style_masks_folder, exist_ok=True)
+results_folder = "results"
+os.makedirs(results_folder, exist_ok=True)
 
 
 def read_image(path_to_image):
@@ -99,6 +101,11 @@ def full_style_transfer(style_filename, content_filename, save_svg):
 def make_transfer_style(content_path, style_path, save_raster_to, save_full_raster_to, save_svg_to, save_full_svg_to):
     loss = INF
     full_trasfer_loss = INF
+
+    save_raster_to = f"{results_folder}/{save_raster_to}"
+    save_full_raster_to = f"{results_folder}/{save_full_raster_to}"
+    save_svg_to = f"{results_folder}/{save_svg_to}"
+    save_full_svg_to = f"{results_folder}/{save_full_svg_to}"
 
     try:
         styleMasks, style_classes = process_style(style_path)
