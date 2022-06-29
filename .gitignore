@@ -3,3 +3,4 @@
 __pycache__/
 style_masks
 *.zip
+segmentation_old
